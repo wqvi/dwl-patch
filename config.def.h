@@ -123,7 +123,11 @@ static const enum libinput_config_tap_button_map button_map = LIBINPUT_CONFIG_TA
 
 /* commands */
 static const char *termcmd[] = { "foot", NULL };
-static const char *menucmd[] = { "j4-dmenu-desktop", "--term=foot", "--dmenu=bemenu -i -p bemenu-run\\ \\-\\>", "--use-xdg-de"};
+static const char *menucmd[] = { "j4-dmenu-desktop",
+					"--no-generic",
+					"--term=foot",
+					"--dmenu=wmenu -i -p run\\ \\-\\>",
+					"--use-xdg-de"};
 static const char *backlightincrease[] = { "xbacklight", "-inc", "10", NULL };
 static const char *backlightdecrease[] = { "xbacklight", "-dec", "10", NULL };
 static const char *volumeincrease[] = { "pactl", "set-sink-volume", "@DEFAULT_SINK@", "+5%", NULL };
