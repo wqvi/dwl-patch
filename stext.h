@@ -160,7 +160,7 @@ static void formatram(char **s) {
 
 	memused = (memtotal - memfree - buffers - cached) / gb;
 
-	snprintf(*s, RAMOFFSET, " | %.1LfGb/%.1LfGb", memused, memtotal / gb);
+	snprintf(*s, RAMOFFSET, "%.1LfGb/%.1LfGb", memused, memtotal / gb);
 	*s += strlen(*s);
 }
 
@@ -266,7 +266,9 @@ static void formatnetwork(char **c) {
 		quality = (stats.qual.qual * 100) / range.max_qual.qual;
 	}
 
-	snprintf(*c, size, "%s %d%% %s %s", essid, quality, rq.ifr_name, addr);
+	// have network print the seperator.
+	// I prefer the status to end without a seperator.
+	snprintf(*c, size, "%s %d%% %s %s |", essid, quality, rq.ifr_name, addr);
 	*c += strlen(*c);
 }
 
