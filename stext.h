@@ -14,7 +14,7 @@
 #define BATOFFSET (24)
 #define TEMPOFFSET (16)
 #define RAMOFFSET (16)
-#define NETOFFSET (32)
+#define NETOFFSET (48)
 
 #ifndef BAT0
 #define BAT0 "/sys/class/power_supply/BAT0/"
@@ -268,7 +268,7 @@ static void formatnetwork(char **c) {
 
 	// have network print the seperator.
 	// I prefer the status to end without a seperator.
-	snprintf(*c, size, "%s %d%% %s %s |", essid, quality, rq.ifr_name, addr);
+	snprintf(*c, size, "%s %d%% %s %s | ", essid, quality, rq.ifr_name, addr);
 	*c += strlen(*c);
 }
 
