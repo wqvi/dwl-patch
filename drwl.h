@@ -43,15 +43,17 @@
 #undef MIN
 
 #define ADWAITA_THEME_DIR "/usr/share/icons/Adwaita/symbolic"
+#define SVG_SURFACE_WIDTH (64)
+#define SVG_SURFACE_HEIGHT (64)
+#define SVG_SURFACE_SCALE (2.0)
 
 enum { ColFg, ColBg, ColBorder }; /* colorscheme index */
 
 struct icon {
 	RsvgHandle *handle;
-	// 16px by 16px for now because I am programming this
-	// for a 1920x1200 screen :)
 	cairo_surface_t *surface;
 	cairo_t *context;
+	RsvgRectangle viewport;
 };
 
 struct wifi_icons {
@@ -60,6 +62,11 @@ struct wifi_icons {
 	struct icon okay;
 	struct icon weak;
 	struct icon none;
+};
+
+struct wifi_info {
+	char *network_name;
+	int quality;
 };
 
 typedef struct {
@@ -107,8 +114,10 @@ static void load_icon(const char *file, struct icon *icon) {
 		return;
 	}
 
-	icon->surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 16, 16);
+	icon->surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, SVG_SURFACE_WIDTH, SVG_SURFACE_HEIGHT);
 	icon->context = cairo_create(icon->surface);
+	icon->viewport.x = 0.0;
+	icon->viewport.y = 0.0;
 }
 
 static Drwl *
@@ -190,6 +199,22 @@ drwl_rect(Drwl *drwl,
 	}
 }
 
+static void render_icon(cairo_t *cr, struct icon *icon, uint32_t clr, double x, double y, int w, int h) {
+	GError *error = NULL;
+
+	icon->viewport.width = w - SVG_SURFACE_SCALE;
+	icon->viewport.height = h - SVG_SURFACE_SCALE;
+
+	if (!rsvg_handle_render_document(icon->handle, icon->context, &icon->viewport, &error)) {
+		fprintf(stderr, "Could not render svg: %s\n", error->message);
+		return;
+	}
+
+	// render surface to target context
+	cairo_set_source_surface(cr, icon->surface, x, y);
+	cairo_paint(cr);
+}
+
 static int
 drwl_text(Drwl *drwl,
 		int x, int y, int w, int h,
@@ -237,6 +262,10 @@ drwl_text(Drwl *drwl,
 	pango_cairo_show_layout(drwl->context, drwl->pango_layout);
 
 	return x + (render ? w : 0);
+}
+
+static void drwl_draw_status(Drwl *drwl, int x, int y, int w, int h, unsigned int lpad, const char *text, int invert) {
+	
 }
 
 static unsigned int
