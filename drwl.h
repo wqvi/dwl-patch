@@ -33,17 +33,18 @@
 #include <fcft/fcft.h>
 #include <pixman-1/pixman.h>
 #include <cairo.h>
-#include <cairo-ft.h>
-#include <fontconfig/fontconfig.h>
+#include <pango/pangocairo.h>
 #include <librsvg/rsvg.h>
-// suppress macro redefinition
-// we don't need glib min & max
+
+// undefine max & min.
+// suppresses redefinition warning
+// dwl has it's own implementation
 #undef MAX
 #undef MIN
 
-enum { ColFg, ColBg, ColBorder }; /* colorscheme index */
+#define ADWAITA_THEME_DIR "/usr/share/icons/Adwaita/symbolic"
 
-typedef struct fcft_font Fnt;
+enum { ColFg, ColBg, ColBorder }; /* colorscheme index */
 
 struct icon {
 	RsvgHandle *handle;
@@ -64,27 +65,29 @@ struct wifi_icons {
 typedef struct {
 	struct wifi_icons wifi;
 
-	cairo_surface_t *surface;
-	cairo_t *context;
+	// font context. used for getting font height
+	// prior to any surface creation
+	PangoContext *pango_context;
 
-	// this could be anything from
-	// "Monospace" to "Sans"
-	char *font_name;
-	cairo_font_face_t *font_face;
-	unsigned int font_size;
+	// Font description, so the name of the font
+	// and the size of the font
+	PangoFontDescription *pango_description;
+
+	// Display metrics for the font, so size in pixels
+	// used to populate the font_height variable
 	unsigned int font_height;
 
-	pixman_image_t *pix;
-	Fnt *font;
+	cairo_surface_t *surface;
+	cairo_t *context;
+	// used for rendering text to the surface
+	PangoLayout *pango_layout;
+
 	uint32_t *scheme;
 } Drwl;
-
-#define ADWAITA_THEME_DIR "/usr/share/icons/Adwaita/symbolic"
 
 static void
 drwl_init(void)
 {
-	FcInit();
 }
 
 static void load_icon(const char *file, struct icon *icon) {	
@@ -103,13 +106,14 @@ static Drwl *
 drwl_create(const char *font_name, unsigned int font_size)
 {
 	Drwl *drwl;
-	size_t font_str_size;
-	cairo_surface_t *dummy_surface;
-	cairo_t *dummy_context;
-	FcPattern *pattern;
-	FcResult result;
-	FcPattern *match;
-	cairo_font_extents_t extent;
+	// this variable is for getting the font height
+	// this is for calculating parts of the bar prior
+	// to any rendering
+	PangoFontMap *font_map;
+	PangoFontMetrics *metrics;
+	int ascent;
+	int descent;
+	float font_height;
 	
 	drwl = calloc(1, sizeof(Drwl));
 	if (!drwl) {
@@ -117,43 +121,18 @@ drwl_create(const char *font_name, unsigned int font_size)
 		return NULL;
 	}
 
-	font_str_size = strlen(font_name);
-	drwl->font_name = calloc(font_str_size, sizeof(char));
-	if (!drwl->font_name) {
-		fprintf(stderr, "Failed to allocate memory for font name string\n");
-		free(drwl);
-		return NULL;
-	}
-	memcpy(drwl->font_name, font_name, font_str_size);
+	// Create a pango context from default cairo font map
+	font_map = pango_cairo_font_map_get_default();
+	drwl->pango_context = pango_font_map_create_context(font_map);
 
-	// create dummy surfaces to get font information
-	// this is meant for dwl not for the status bar
-	dummy_surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1);
-	dummy_context = cairo_create(dummy_surface);
-
-	// Get the font, for some reason it's an unsigned char despite needing a string
-	// gonna be honest I don't entirely understand what this does I just got it from an example.
-	// it works, so who am I to complain!
-	pattern = FcNameParse((const FcChar8 *)font_name);
-	FcConfigSubstitute(NULL, pattern, FcMatchPattern);
-	FcDefaultSubstitute(pattern);
-
-	match = FcFontMatch(NULL, pattern, &result);
-	if (!match) {
-		fprintf(stderr, "Font not found\n");
-		return NULL;
-	}
-
-	drwl->font_face = cairo_ft_font_face_create_for_pattern(match);
-	cairo_set_font_face(dummy_context, drwl->font_face);
-	drwl->font_size = font_size;
-	cairo_set_font_size(dummy_context, drwl->font_size);
-
-	// Get font height and assign it to status bar.
-	// Uses the dummy context which gets freed after the status bar
-	// is finished up with it's creation
-	cairo_font_extents(dummy_context, &extent);
-	drwl->font_height = (unsigned int)extent.height;
+	// TODO replace the hardcoded string with one from config.def.h
+	drwl->pango_description = pango_font_description_from_string("LiberationMono 12");
+	// Get font metrics and use the metrics to get the font height
+	metrics = pango_context_get_metrics(drwl->pango_context, drwl->pango_description, NULL);
+	ascent = pango_font_metrics_get_ascent(metrics);
+	descent = pango_font_metrics_get_descent(metrics);
+	font_height = (float)(ascent + descent) / (float)PANGO_SCALE;
+	drwl->font_height = (unsigned int)font_height;
 
 	// load all the icons necessary for wireless networks
 	load_icon(ADWAITA_THEME_DIR "/status/network-wireless-disabled-symbolic.svg", &drwl->wifi.disabled);
@@ -162,15 +141,7 @@ drwl_create(const char *font_name, unsigned int font_size)
 	load_icon(ADWAITA_THEME_DIR "/status/network-wireless-signal-weak-symbolic.svg", &drwl->wifi.weak);
 	load_icon(ADWAITA_THEME_DIR "/status/network-wireless-signal-none-symbolic.svg", &drwl->wifi.none);
 
-	// these aren't needed as they are just temporarily used
-	// for getting the font height
-	//
-	// What a terrible hack I know, but that's how cairo works.
-	cairo_destroy(dummy_context);
-	cairo_surface_destroy(dummy_surface);
-
-	FcPatternDestroy(pattern);
-	FcPatternDestroy(match);
+	pango_font_metrics_unref(metrics);
 
 	return drwl;
 }
@@ -178,11 +149,11 @@ drwl_create(const char *font_name, unsigned int font_size)
 static void
 drwl_prepare_drawing(Drwl *drwl, int w, int h, int stride, unsigned char *data)
 {
+	// create all the necessary information to write to the wayland buffer
 	drwl->surface = cairo_image_surface_create_for_data(data, CAIRO_FORMAT_ARGB32, w, h, stride);
 	drwl->context = cairo_create(drwl->surface);
-
-	cairo_set_font_face(drwl->context, drwl->font_face);
-	cairo_set_font_size(drwl->context, drwl->font_size);
+	drwl->pango_layout = pango_layout_new(drwl->pango_context);
+	pango_layout_set_font_description(drwl->pango_layout, drwl->pango_description);
 }
 
 static void
@@ -218,8 +189,11 @@ drwl_text(Drwl *drwl,
 		int x, int y, int w, int h,
 		unsigned int lpad, const char *text, int invert)
 {
-	cairo_text_extents_t extent;
+	PangoRectangle bearing_rect;
+	PangoRectangle logical_rect;
 	float surface_height;
+	float height;
+	float y_bearing;
 	float text_y;
 	int render = x || y || w || h;
 
@@ -241,12 +215,21 @@ drwl_text(Drwl *drwl,
 	cairo_set_source_rgba(drwl->context, 1.0, 1.0, 1.0, 1.0);
 
 	// calculate the position to center the text
-	cairo_text_extents(drwl->context, text, &extent);
+	pango_layout_get_extents(drwl->pango_layout, &bearing_rect, &logical_rect);
+	pango_layout_set_text(drwl->pango_layout, text, -1);
 	surface_height = (float)cairo_image_surface_get_height(drwl->surface);
-	text_y = (surface_height - (float)extent.height) / 2.0f - (float)extent.y_bearing;
+	// wow pango library is annoying since I have
+	// to divide every value from the library by the
+	// PANGO_SCALE constant
+	height = logical_rect.height / PANGO_SCALE;
+	y_bearing = bearing_rect.y / PANGO_SCALE;
 
+	// actually calculate the center of the y axis
+	text_y = (surface_height - height) / 2.0f - y_bearing;
+
+	// render the text
 	cairo_move_to(drwl->context, x, text_y);
-	cairo_show_text(drwl->context, text);
+	pango_cairo_show_layout(drwl->context, drwl->pango_layout);
 
 	return x + (render ? w : 0);
 }
@@ -254,24 +237,22 @@ drwl_text(Drwl *drwl,
 static unsigned int
 drwl_font_getwidth(Drwl *drwl, const char *text)
 {
-	cairo_text_extents_t extents;
-	cairo_text_extents(drwl->context, text, &extents);
-
-	return (unsigned int)extents.width;
+	PangoRectangle extent;
+	pango_layout_set_text(drwl->pango_layout, text, -1);
+	pango_layout_get_extents(drwl->pango_layout, NULL, &extent);
+	return (unsigned int)extent.width / PANGO_SCALE;
 }
 
 static unsigned int
 drwl_font_getheight(Drwl *drwl)
 {
-	cairo_font_extents_t extents;
-	cairo_font_extents(drwl->context, &extents);
-
-	return (unsigned int)extents.height;
+	return drwl->font_height;
 }
 
 static void
 drwl_finish_drawing(Drwl *drwl)
 {
+	g_object_unref(drwl->pango_layout);
 	cairo_destroy(drwl->context);
 	cairo_surface_destroy(drwl->surface);
 }
@@ -285,7 +266,9 @@ static void destroy_icon(struct icon *icon) {
 static void
 drwl_destroy(Drwl *drwl)
 {
-	cairo_font_face_destroy(drwl->font_face);
+	pango_font_description_free(drwl->pango_description);
+
+	g_object_unref(drwl->pango_context);
 
 	destroy_icon(&drwl->wifi.disabled);
 	destroy_icon(&drwl->wifi.good);
@@ -293,7 +276,6 @@ drwl_destroy(Drwl *drwl)
 	destroy_icon(&drwl->wifi.weak);
 	destroy_icon(&drwl->wifi.none);
 
-	free(drwl->font_name);
 	free(drwl);
 }
 
