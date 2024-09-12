@@ -1139,8 +1139,11 @@ createmon(struct wl_listener *listener, void *data)
 	wlr_output_commit_state(wlr_output, &state);
 	wlr_output_state_finish(&state);
 
-	if (!(m->drw = drwl_create()))
+	// why do we not seperate these, this is far more clear.
+	m->drw = drwl_create("Monospace", 12);
+	if (!m->drw) {
 		die("failed to create drwl context");
+	}
 
 	m->scene_buffer = wlr_scene_buffer_create(layers[LyrBottom], NULL);
 	m->scene_buffer->point_accepts_input = bar_accepts_input;
@@ -1465,8 +1468,8 @@ drawbar(Monitor *m)
 {
 	static uint32_t *color = colors[SchemeNorm];
 	int x, w, tw = 0;
-	int boxs = m->drw->font->height / 9;
-	int boxw = m->drw->font->height / 6 + 2;
+	int boxs = m->drw->font_height / 9;
+	int boxw = m->drw->font_height / 6 + 2;
 	uint32_t i, occ = 0, urg = 0;
 	int32_t stride, size;
 	Client *c;
@@ -1475,18 +1478,18 @@ drawbar(Monitor *m)
 	if (!m->scene_buffer->node.enabled)
 		return;
 
-	stride = drwl_stride(m->b.width);
+	stride = cairo_format_stride_for_width(CAIRO_FORMAT_ARGB32, m->b.width);
 	size = stride * m->b.height;
 
 	buf = ecalloc(1, sizeof(Buffer) + size);
 	buf->stride = stride;
 	wlr_buffer_init(&buf->base, &buffer_impl, m->b.width, m->b.height);
 
-	drwl_prepare_drawing(m->drw, m->b.width, m->b.height, buf->data, stride);
+	drwl_prepare_drawing(m->drw, m->b.width, m->b.height, stride, (unsigned char *)buf->data);
 
 	/* draw status first so it can be overdrawn by tags later */
 	if (m == selmon) { /* status is only drawn on selected monitor */
-		drwl_setscheme(m->drw, color);
+		m->drw->scheme = color;
 		tw = TEXTW(m, stext) - m->lrpad + 2; /* 2px right padding */
 		drwl_text(m->drw, m->b.width - tw, 0, tw, m->b.height, 0, stext, 0);
 	}
@@ -1498,33 +1501,35 @@ drawbar(Monitor *m)
 		if (c->isurgent)
 			urg |= c->tags;
 	}
+
 	x = 0;
 	c = focustop(m);
 	for (i = 0; i < LENGTH(tags); i++) {
 		w = TEXTW(m, tags[i]);
-		drwl_setscheme(m->drw, colors[m->tagset[m->seltags] & 1 << i ? SchemeSel : SchemeNorm]);
+		//drwl_setscheme(m->drw, colors[m->tagset[m->seltags] & 1 << i ? SchemeSel : SchemeNorm]);
 		drwl_text(m->drw, x, 0, w, m->b.height, m->lrpad / 2, tags[i], urg & 1 << i);
-		if (occ & 1 << i)
+		if (occ & 1 << i  || i == 0) {
 			drwl_rect(m->drw, x + boxs, boxs, boxw, boxw,
 				m == selmon && c && c->tags & 1 << i,
 				urg & 1 << i);
+		}
 		x += w;
 	}
-	w = TEXTW(m, m->ltsymbol);
-	drwl_setscheme(m->drw, colors[SchemeNorm]);
-	x = drwl_text(m->drw, x, 0, w, m->b.height, m->lrpad / 2, m->ltsymbol, 0);
+	//w = TEXTW(m, m->ltsymbol);
+	//drwl_setscheme(m->drw, colors[SchemeNorm]);
+	//x = drwl_text(m->drw, x, 0, w, m->b.height, m->lrpad / 2, m->ltsymbol, 0);
 
 	if ((w = m->b.width - tw - x) > m->b.height) {
 		if (c) {
-			drwl_setscheme(m->drw, colors[m == selmon ? SchemeSel : SchemeNorm]);
-			color = colors[m == selmon ? SchemeSel : SchemeNorm];
+			//drwl_setscheme(m->drw, colors[m == selmon ? SchemeSel : SchemeNorm]);
+			//color = colors[m == selmon ? SchemeSel : SchemeNorm];
 			drwl_text(m->drw, x, 0, w, m->b.height, m->lrpad / 2, client_get_title(c), 0);
-			if (c && c->isfloating)
-				drwl_rect(m->drw, x + boxs, boxs, boxw, boxw, 0, 0);
+			//if (c && c->isfloating)
+			//	drwl_rect(m->drw, x + boxs, boxs, boxw, boxw, 0, 0);
 		} else {
-			drwl_setscheme(m->drw, colors[SchemeNorm]);
-			color = colors[SchemeNorm];
-			drwl_rect(m->drw, x, 0, w, m->b.height, 1, 1);
+			//drwl_setscheme(m->drw, colors[SchemeNorm]);
+			//color = colors[SchemeNorm];
+			//drwl_rect(m->drw, x, 0, w, m->b.height, 1, 1);
 		}
 	}
 
@@ -3115,7 +3120,6 @@ void
 updatebar(Monitor *m)
 {
 	int rw, rh;
-	char fontattrs[12];
 
 	wlr_output_transformed_resolution(m->wlr_output, &rw, &rh);
 	m->b.width = rw;
@@ -3126,14 +3130,9 @@ updatebar(Monitor *m)
 	if (m->b.scale == m->wlr_output->scale && m->drw)
 		return;
 
-	drwl_font_destroy(m->drw->font);
-	snprintf(fontattrs, sizeof(fontattrs), "dpi=%.2f", 96. * m->wlr_output->scale);
-	if (!(drwl_font_create(m->drw, LENGTH(fonts), fonts, fontattrs)))
-		die("Could not load font");
-
 	m->b.scale = m->wlr_output->scale;
-	m->lrpad = m->drw->font->height;
-	m->b.height = m->drw->font->height + 2;
+	m->lrpad = m->drw->font_height;
+	m->b.height = m->drw->font_height + 2;
 	m->b.real_height = (int)((float)m->b.height / m->wlr_output->scale);
 }
 
