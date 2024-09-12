@@ -85,6 +85,15 @@ typedef struct {
 	uint32_t *scheme;
 } Drwl;
 
+static void set_color(cairo_t *cr, uint32_t hex) {
+	double r = ((hex >> 24) & 0xFF) / 255.0;
+	double g = ((hex >> 16) & 0xFF) / 255.0;
+	double b = ((hex >> 8) & 0xFF) / 255.0;
+	double a = (hex & 0xFF) / 255.0;
+
+	cairo_set_source_rgba(cr, r, g, b, a);
+}
+
 static void
 drwl_init(void)
 {
@@ -111,8 +120,6 @@ drwl_create(const char *font_name, unsigned int font_size)
 	// to any rendering
 	PangoFontMap *font_map;
 	PangoFontMetrics *metrics;
-	int ascent;
-	int descent;
 	float font_height;
 	
 	drwl = calloc(1, sizeof(Drwl));
@@ -129,9 +136,7 @@ drwl_create(const char *font_name, unsigned int font_size)
 	drwl->pango_description = pango_font_description_from_string("LiberationMono 12");
 	// Get font metrics and use the metrics to get the font height
 	metrics = pango_context_get_metrics(drwl->pango_context, drwl->pango_description, NULL);
-	ascent = pango_font_metrics_get_ascent(metrics);
-	descent = pango_font_metrics_get_descent(metrics);
-	font_height = (float)(ascent + descent) / (float)PANGO_SCALE;
+	font_height = (float)pango_font_metrics_get_height(metrics) / (float)PANGO_SCALE;
 	drwl->font_height = (unsigned int)font_height;
 
 	// load all the icons necessary for wireless networks
@@ -161,7 +166,8 @@ drwl_rect(Drwl *drwl,
 		int x, int y, unsigned int w, unsigned int h,
 		int filled, int invert)
 {
-	cairo_set_source_rgba(drwl->context, 1.0, 1.0, 1.0, 1.0);
+	uint32_t clr = drwl->scheme[invert ? ColBg : ColFg];
+	set_color(drwl->context, clr);
 	if (filled) {
 		cairo_rectangle(drwl->context, x, y, w, h);
 		cairo_fill(drwl->context);
@@ -189,43 +195,42 @@ drwl_text(Drwl *drwl,
 		int x, int y, int w, int h,
 		unsigned int lpad, const char *text, int invert)
 {
-	PangoRectangle bearing_rect;
-	PangoRectangle logical_rect;
+	PangoRectangle rect;
 	float surface_height;
 	float height;
-	float y_bearing;
 	float text_y;
 	int render = x || y || w || h;
+	uint32_t clr = drwl->scheme[ColFg];
 
 	if (!render) {
 		w = invert ? invert : ~invert;
 	} else {
-		//clr = convert_color(drwl->scheme[invert ? ColBg : ColFg]);
-		//fg_pix = pixman_image_create_solid_fill(&clr);
+		clr = drwl->scheme[invert ? ColBg : ColFg];
+		set_color(drwl->context, clr);
 
-		//drwl_rect(drwl, x, y, w, h, 1, !invert);
+		drwl_rect(drwl, x, y, w, h, 1, !invert);
 
 		x += lpad;
 		w -= lpad;
 	}
 
-	//drwl_rect(drwl, x, y, w, h, 1, !invert);
-
 	// set current color, in this case for the font
-	cairo_set_source_rgba(drwl->context, 1.0, 1.0, 1.0, 1.0);
+	// this is to emulate the pixman_image_composite32 operations
+	// as that's how the previous implementation colored
+	// the text
+	set_color(drwl->context, clr);
 
 	// calculate the position to center the text
-	pango_layout_get_extents(drwl->pango_layout, &bearing_rect, &logical_rect);
+	pango_layout_get_extents(drwl->pango_layout, NULL, &rect);
 	pango_layout_set_text(drwl->pango_layout, text, -1);
 	surface_height = (float)cairo_image_surface_get_height(drwl->surface);
 	// wow pango library is annoying since I have
 	// to divide every value from the library by the
 	// PANGO_SCALE constant
-	height = logical_rect.height / PANGO_SCALE;
-	y_bearing = bearing_rect.y / PANGO_SCALE;
+	height = rect.height / PANGO_SCALE;
 
 	// actually calculate the center of the y axis
-	text_y = (surface_height - height) / 2.0f - y_bearing;
+	text_y = (surface_height - height) / 2.0f;
 
 	// render the text
 	cairo_move_to(drwl->context, x, text_y);

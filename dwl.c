@@ -1506,30 +1506,27 @@ drawbar(Monitor *m)
 	c = focustop(m);
 	for (i = 0; i < LENGTH(tags); i++) {
 		w = TEXTW(m, tags[i]);
-		//drwl_setscheme(m->drw, colors[m->tagset[m->seltags] & 1 << i ? SchemeSel : SchemeNorm]);
+		m->drw->scheme = colors[m->tagset[m->seltags] & 1 << i ? SchemeSel : SchemeNorm];
 		drwl_text(m->drw, x, 0, w, m->b.height, m->lrpad / 2, tags[i], urg & 1 << i);
-		if (occ & 1 << i  || i == 0) {
+		if (occ & 1 << i) {
 			drwl_rect(m->drw, x + boxs, boxs, boxw, boxw,
 				m == selmon && c && c->tags & 1 << i,
 				urg & 1 << i);
 		}
 		x += w;
 	}
-	//w = TEXTW(m, m->ltsymbol);
-	//drwl_setscheme(m->drw, colors[SchemeNorm]);
-	//x = drwl_text(m->drw, x, 0, w, m->b.height, m->lrpad / 2, m->ltsymbol, 0);
+	w = TEXTW(m, m->ltsymbol);
+	m->drw->scheme = colors[SchemeNorm];
 
 	if ((w = m->b.width - tw - x) > m->b.height) {
 		if (c) {
-			//drwl_setscheme(m->drw, colors[m == selmon ? SchemeSel : SchemeNorm]);
-			//color = colors[m == selmon ? SchemeSel : SchemeNorm];
+			m->drw->scheme = colors[m == selmon ? SchemeSel : SchemeNorm];
+			color = colors[m == selmon ? SchemeSel : SchemeNorm];
 			drwl_text(m->drw, x, 0, w, m->b.height, m->lrpad / 2, client_get_title(c), 0);
-			//if (c && c->isfloating)
-			//	drwl_rect(m->drw, x + boxs, boxs, boxw, boxw, 0, 0);
 		} else {
-			//drwl_setscheme(m->drw, colors[SchemeNorm]);
-			//color = colors[SchemeNorm];
-			//drwl_rect(m->drw, x, 0, w, m->b.height, 1, 1);
+			m->drw->scheme = colors[SchemeNorm];
+			color = colors[SchemeNorm];
+			drwl_rect(m->drw, x, 0, w, m->b.height, 1, 1);
 		}
 	}
 
