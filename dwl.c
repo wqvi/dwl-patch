@@ -2836,7 +2836,7 @@ int
 status_in(void *data)
 {
 	struct statusbardata *status = data;
-	statusbar();
+	statusbar(stext);
 	drawbars();
 
 	wl_event_source_timer_update(status->status_event_source, 45000);
@@ -3097,7 +3097,7 @@ updatemons(struct wl_listener *listener, void *data)
 	}
 
 	if (stext[0] == '\0')
-		statusbar();
+		statusbar(stext);
 	wl_list_for_each(m, &mons, link) {
 		updatebar(m);
 		drawbar(m);
