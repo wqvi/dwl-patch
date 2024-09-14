@@ -275,14 +275,6 @@ void formatstatusbar(char *stext) {
 	formatdate(&ptr);
 }
 
-// TODO remove and/or update
-// drwl - aka the statusbar needs to have access
-// to the well statusbar information. So there should be a pointer
-// to drwl pass in here.
-void statusbar(char *stext) {
-	formatstatusbar(stext);
-}
-
 static void load_icon(const char *file, struct icon *icon) {	
 	GError *error = NULL;
 	icon->handle = rsvg_handle_new_from_file(file, &error);

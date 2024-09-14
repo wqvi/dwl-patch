@@ -443,9 +443,11 @@ static struct wl_list mons;
 static Monitor *selmon;
 
 static char stext[256];
-static struct statusbardata {
-	struct wl_event_source *status_event_source;
-} statusbardata;
+static struct statusbar{
+	// timed event source
+	// this is for updating the status information
+	struct wl_event_source *timed_event_source;
+} statusbar;
 
 static const struct wlr_buffer_impl buffer_impl = {
     .destroy = buffer_destroy,
@@ -2779,8 +2781,8 @@ setup(void)
 	LISTEN_STATIC(&output_mgr->events.apply, outputmgrapply);
 	LISTEN_STATIC(&output_mgr->events.test, outputmgrtest);
 
-	statusbardata.status_event_source = wl_event_loop_add_timer(event_loop, status_in, &statusbardata);
-	wl_event_source_timer_update(statusbardata.status_event_source, 45000);
+	statusbar.timed_event_source = wl_event_loop_add_timer(event_loop, status_in, &statusbar);
+	wl_event_source_timer_update(statusbar.timed_event_source, 45000);
 
 	/* Make sure XWayland clients don't connect to the parent X server,
 	 * e.g when running in the x11 backend or the wayland backend and the
@@ -2828,11 +2830,15 @@ startdrag(struct wl_listener *listener, void *data)
 int
 status_in(void *data)
 {
-	struct statusbardata *status = data;
-	statusbar(stext);
+	struct statusbar *bar = data;
+	formatstatusbar(stext);
 	drawbars();
 
-	wl_event_source_timer_update(status->status_event_source, 45000);
+	// reset the timer back to 45 seconds.
+	// arbitrary choice of time, I just wanted to aim to at least update it close to the minute
+	// mark just so it isn't too far off from like my phone or something
+	// yes this is hard coding it. I will spend time on this later.
+	wl_event_source_timer_update(bar->timed_event_source, 45000);
 
 	return 0;
 }
@@ -3090,7 +3096,7 @@ updatemons(struct wl_listener *listener, void *data)
 	}
 
 	if (stext[0] == '\0')
-		statusbar(stext);
+		formatstatusbar(stext);
 	wl_list_for_each(m, &mons, link) {
 		updatebar(m);
 		drawbar(m);

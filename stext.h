@@ -94,8 +94,6 @@ struct Drwl {
 
 void formatstatusbar(char *stext);
 
-void statusbar(char *stext);
-
 struct Drwl *drwl_create(const char *font);
 
 void drwl_prepare_drawing(struct Drwl *drwl, int w, int h, int stride, unsigned char *data);
