@@ -199,7 +199,7 @@ drwl_rect(Drwl *drwl,
 	}
 }
 
-static void render_icon(cairo_t *cr, struct icon *icon, uint32_t clr, double x, double y, int w, int h) {
+static void render_icon(Drwl *drwl, struct icon *icon, double x, double y, int w, int h) {
 	GError *error = NULL;
 
 	icon->viewport.width = w - SVG_SURFACE_SCALE;
@@ -211,8 +211,8 @@ static void render_icon(cairo_t *cr, struct icon *icon, uint32_t clr, double x, 
 	}
 
 	// render surface to target context
-	cairo_set_source_surface(cr, icon->surface, x, y);
-	cairo_paint(cr);
+	cairo_set_source_surface(drwl->context, icon->surface, x, y);
+	cairo_paint(drwl->context);
 }
 
 static int
