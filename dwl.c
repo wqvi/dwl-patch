@@ -809,8 +809,6 @@ cleanup(void)
 	/* Destroy after the wayland display (when the monitors are already destroyed)
 	   to avoid destroying them with an invalid scene output. */
 	wlr_scene_node_destroy(&scene->tree.node);
-
-	drwl_fini();
 }
 
 void
@@ -2783,8 +2781,6 @@ setup(void)
 	output_mgr = wlr_output_manager_v1_create(dpy);
 	LISTEN_STATIC(&output_mgr->events.apply, outputmgrapply);
 	LISTEN_STATIC(&output_mgr->events.test, outputmgrtest);
-
-	drwl_init();
 
 	statusbardata.status_event_source = wl_event_loop_add_timer(event_loop, status_in, &statusbardata);
 	wl_event_source_timer_update(statusbardata.status_event_source, 45000);

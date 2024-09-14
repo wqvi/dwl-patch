@@ -29,9 +29,6 @@
  */
 #pragma once
 
-#include <stdlib.h>
-#include <fcft/fcft.h>
-#include <pixman-1/pixman.h>
 #include <cairo.h>
 #include <pango/pangocairo.h>
 #include <librsvg/rsvg.h>
@@ -99,11 +96,6 @@ static void set_color(cairo_t *cr, uint32_t hex) {
 	double a = (hex & 0xFF) / 255.0;
 
 	cairo_set_source_rgba(cr, r, g, b, a);
-}
-
-static void
-drwl_init(void)
-{
 }
 
 static void load_icon(const char *file, struct icon *icon) {	
@@ -311,7 +303,4 @@ drwl_destroy(Drwl *drwl)
 	destroy_icon(&drwl->wifi.none);
 
 	free(drwl);
-}
-
-static void drwl_fini(void) {
 }
