@@ -32,6 +32,7 @@
 
 #include <pango/pangocairo.h>
 #include <librsvg/rsvg.h>
+#include <linux/wireless.h>
 
 // undefine max & min.
 // suppresses redefinition warning
@@ -66,7 +67,7 @@ struct icon {
 };
 
 struct wireless_icons {
-	struct icon disabled;
+	struct icon disconnected;
 	struct icon good;
 	struct icon okay;
 	struct icon weak;
@@ -75,7 +76,7 @@ struct wireless_icons {
 
 struct network_info {
 	enum network_type type;
-	char *name;
+	char name[IW_ESSID_MAX_SIZE];
 	int quality;
 };
 
@@ -86,7 +87,7 @@ struct system_info {
 // TODO rename Drwl to something like statusbar?
 // Plus make it not a typedef. That is confusing.
 struct Drwl {
-	struct wireless_icons wifi;
+	struct wireless_icons wireless;
 
 	// font context. used for getting font height
 	// prior to any surface creation
@@ -109,6 +110,8 @@ struct Drwl {
 };
 
 void formatstatusbar(struct system_info *info, char *stext);
+
+void draw_system_info(struct Drwl *drwl, struct system_info *info, int x, int y);
 
 struct Drwl *drwl_create(const char *font);
 

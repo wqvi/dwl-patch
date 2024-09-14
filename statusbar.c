@@ -204,6 +204,9 @@ static void formatnetwork(struct network_info *info, char **c) {
 	struct iw_range range;
 	int quality = 0;
 	volatile size_t size = NETOFFSET; // suppress compiler truncation warning
+	
+	// default to disconnected just in case network is off
+	info->type = Disconnected;
 
 	if (resolve_ifname(&rq)) {
 		return;
@@ -281,6 +284,38 @@ void formatstatusbar(struct system_info *info, char *stext) {
 	formatdate(&ptr);
 }
 
+static void draw_wireless_icon(struct Drwl *drwl, struct network_info *info, int x, int y, int w, int h) {
+	struct icon *icon = &drwl->wireless.good;
+	if (info->quality < 75) {
+		icon = &drwl->wireless.okay;
+	} else if (info->quality < 50) {
+		icon = &drwl->wireless.weak;
+	} else if (info->quality < 25) {
+		icon = &drwl->wireless.none;
+	}
+	render_icon(drwl, icon, x, y, w, h);
+}
+
+static void draw_network_info(struct Drwl *drwl, struct network_info *info, int x, int y, int w, int h) {
+	switch (info->type) {
+		case Disconnected:
+			render_icon(drwl, &drwl->wireless.disconnected, x, y, w, h);
+			break;
+		case Wireless:
+			draw_wireless_icon(drwl, info, x, y, w, h);
+			//render_icon(drwl, &drwl->wireless.okay, x, y, w, h);
+			// this is just a test
+			//drwl_text(drwl, 0, 0, 128, 16, 2, info->name, 0);
+			break;
+		default:
+			return;
+	}
+}
+
+void draw_system_info(struct Drwl *drwl, struct system_info *info, int x, int y) {
+	draw_network_info(drwl, &info->network, x, y, 16, 16);
+}
+
 static void load_icon(const char *file, struct icon *icon) {	
 	GError *error = NULL;
 	icon->handle = rsvg_handle_new_from_file(file, &error);
@@ -321,11 +356,11 @@ struct Drwl *drwl_create(const char *font) {
 	drwl->font_height = (unsigned int)font_height;
 
 	// load all the icons necessary for wireless networks
-	load_icon(ADWAITA_THEME_DIR "/status/network-wireless-disabled-symbolic.svg", &drwl->wifi.disabled);
-	load_icon(ADWAITA_THEME_DIR "/status/network-wireless-signal-good-symbolic.svg", &drwl->wifi.good);
-	load_icon(ADWAITA_THEME_DIR "/status/network-wireless-signal-ok-symbolic.svg", &drwl->wifi.okay);
-	load_icon(ADWAITA_THEME_DIR "/status/network-wireless-signal-weak-symbolic.svg", &drwl->wifi.weak);
-	load_icon(ADWAITA_THEME_DIR "/status/network-wireless-signal-none-symbolic.svg", &drwl->wifi.none);
+	load_icon(ADWAITA_THEME_DIR "/status/network-wireless-disabled-symbolic.svg", &drwl->wireless.disconnected);
+	load_icon(ADWAITA_THEME_DIR "/status/network-wireless-signal-good-symbolic.svg", &drwl->wireless.good);
+	load_icon(ADWAITA_THEME_DIR "/status/network-wireless-signal-ok-symbolic.svg", &drwl->wireless.okay);
+	load_icon(ADWAITA_THEME_DIR "/status/network-wireless-signal-weak-symbolic.svg", &drwl->wireless.weak);
+	load_icon(ADWAITA_THEME_DIR "/status/network-wireless-signal-none-symbolic.svg", &drwl->wireless.none);
 
 	pango_font_metrics_unref(metrics);
 
@@ -463,11 +498,11 @@ void drwl_destroy(struct Drwl *drwl) {
 
 	g_object_unref(drwl->pango_context);
 
-	destroy_icon(&drwl->wifi.disabled);
-	destroy_icon(&drwl->wifi.good);
-	destroy_icon(&drwl->wifi.okay);
-	destroy_icon(&drwl->wifi.weak);
-	destroy_icon(&drwl->wifi.none);
+	destroy_icon(&drwl->wireless.disconnected);
+	destroy_icon(&drwl->wireless.good);
+	destroy_icon(&drwl->wireless.okay);
+	destroy_icon(&drwl->wireless.weak);
+	destroy_icon(&drwl->wireless.none);
 
 	free(drwl);
 }
