@@ -27,6 +27,8 @@
 #define SVG_SURFACE_HEIGHT (64)
 #define SVG_SURFACE_SCALE (2.0)
 
+#define DEG_TO_RADS(x) ((x) * (G_PI / 180.0))
+
 static void formatdate(char **s) {
 	time_t now = time(NULL);
 	struct tm *tm = localtime(&now);
@@ -284,6 +286,15 @@ void formatstatusbar(struct system_info *info, char *stext) {
 	formatdate(&ptr);
 }
 
+static void set_color(cairo_t *cr, uint32_t hex) {
+	double r = ((hex >> 24) & 0xFF) / 255.0;
+	double g = ((hex >> 16) & 0xFF) / 255.0;
+	double b = ((hex >> 8) & 0xFF) / 255.0;
+	double a = (hex & 0xFF) / 255.0;
+
+	cairo_set_source_rgba(cr, r, g, b, a);
+}
+
 static void draw_wireless_icon(struct Drwl *drwl, struct network_info *info, int x, int y, int w, int h) {
 	struct icon *icon = &drwl->wireless.good;
 	if (info->quality < 75) {
@@ -297,15 +308,17 @@ static void draw_wireless_icon(struct Drwl *drwl, struct network_info *info, int
 }
 
 static void draw_network_info(struct Drwl *drwl, struct network_info *info, int x, int y, int w, int h) {
+	int text_width;
 	switch (info->type) {
 		case Disconnected:
 			render_icon(drwl, &drwl->wireless.disconnected, x, y, w, h);
 			break;
 		case Wireless:
-			draw_wireless_icon(drwl, info, x, y, w, h);
-			//render_icon(drwl, &drwl->wireless.okay, x, y, w, h);
-			// this is just a test
-			//drwl_text(drwl, 0, 0, 128, 16, 2, info->name, 0);
+			set_color(drwl->context, drwl->scheme[ColFg]);
+			drwl_rounded_rect(drwl, x - w, y, w, h, 4);
+			draw_wireless_icon(drwl, info, x - w, y, w, h);
+			text_width = drwl_font_getwidth(drwl, info->name) + drwl->font_height;
+			drwl_text(drwl, x, y, text_width, 0, 2, info->name, 0);
 			break;
 		default:
 			return;
@@ -375,15 +388,6 @@ void drwl_prepare_drawing(struct Drwl *drwl, int w, int h, int stride, unsigned 
 	pango_layout_set_font_description(drwl->pango_layout, drwl->pango_description);
 }
 
-static void set_color(cairo_t *cr, uint32_t hex) {
-	double r = ((hex >> 24) & 0xFF) / 255.0;
-	double g = ((hex >> 16) & 0xFF) / 255.0;
-	double b = ((hex >> 8) & 0xFF) / 255.0;
-	double a = (hex & 0xFF) / 255.0;
-
-	cairo_set_source_rgba(cr, r, g, b, a);
-}
-
 void drwl_rect(struct Drwl *drwl,
 		int x, int y, unsigned int w, unsigned int h,
 		int filled, int invert) {
@@ -411,6 +415,21 @@ void drwl_rect(struct Drwl *drwl,
 	}
 }
 
+void drwl_rounded_rect(struct Drwl *drwl,
+		double x, double y, unsigned int w, unsigned int h,
+		double radius) {
+	cairo_t *cr = drwl->context;
+
+	cairo_new_sub_path(cr);
+	cairo_arc(cr, x + w - radius, y + radius, radius, DEG_TO_RADS(-90), 0);
+	cairo_arc(cr, x + w - radius, y + h - radius, radius, 0, DEG_TO_RADS(90));
+	cairo_arc(cr, x + radius, y + h - radius, radius, DEG_TO_RADS(90), DEG_TO_RADS(180));
+	cairo_arc(cr, x + radius, y + radius, radius, DEG_TO_RADS(180), DEG_TO_RADS(270));
+	cairo_close_path(cr);
+
+	cairo_fill(cr);
+}
+
 void render_icon(struct Drwl *drwl, struct icon *icon, double x, double y, int w, int h) {
 	GError *error = NULL;
 
@@ -423,7 +442,7 @@ void render_icon(struct Drwl *drwl, struct icon *icon, double x, double y, int w
 	}
 
 	// render surface to target context
-	cairo_set_source_surface(drwl->context, icon->surface, x, y);
+	cairo_set_source_surface(drwl->context, icon->surface, x, y + SVG_SURFACE_SCALE / 2);
 	cairo_paint(drwl->context);
 }
 

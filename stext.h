@@ -121,6 +121,10 @@ void drwl_rect(struct Drwl *drwl,
 		int x, int y, unsigned int w, unsigned int h,
 		int filled, int invert);
 
+void drwl_rounded_rect(struct Drwl *drwl,
+		double x, double y, unsigned int w, unsigned int h,
+		double radius);
+
 void render_icon(struct Drwl *drwl, struct icon *icon, double x, double y, int w, int h);
 
 int drwl_text(struct Drwl *drwl,

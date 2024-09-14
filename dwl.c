@@ -1491,7 +1491,9 @@ drawbar(Monitor *m)
 		m->drw->scheme = color;
 		tw = TEXTW(m, stext) - m->lrpad + 2; /* 2px right padding */
 		drwl_text(m->drw, m->b.width - tw, 0, tw, m->b.height, 0, stext, 0);
-		draw_system_info(m->drw, &statusbar.system_info, m->b.width - tw, 0);
+		// this renders left to right
+		// yes this is kinda backwards but it makes sense to me
+		draw_system_info(m->drw, &statusbar.system_info, m->b.width, 0);
 	}
 
 	wl_list_for_each(c, &clients, link) {
