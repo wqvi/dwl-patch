@@ -70,7 +70,7 @@
 #endif
 
 #include "util.h"
-#include "drwl.h"
+#include "stext.h"
 
 /* macros */
 #define MAX(A, B)               ((A) > (B) ? (A) : (B))
@@ -443,12 +443,9 @@ static struct wl_list mons;
 static Monitor *selmon;
 
 static char stext[256];
-#include <stext.h>
 static struct statusbardata {
 	struct wl_event_source *status_event_source;
 } statusbardata;
-
-static struct wl_event_source *status_event_source;
 
 static const struct wlr_buffer_impl buffer_impl = {
     .destroy = buffer_destroy,

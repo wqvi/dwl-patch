@@ -1,4 +1,3 @@
-#include "drwl.h"
 #include "stext.h"
 
 #include <stdio.h>
@@ -22,6 +21,11 @@
 #define BAT0 "/sys/class/power_supply/BAT0/"
 
 #define SYSBUFSIZ (4096)
+
+#define ADWAITA_THEME_DIR "/usr/share/icons/Adwaita/symbolic"
+#define SVG_SURFACE_WIDTH (64)
+#define SVG_SURFACE_HEIGHT (64)
+#define SVG_SURFACE_SCALE (2.0)
 
 static void formatdate(char **s) {
 	time_t now = time(NULL);
