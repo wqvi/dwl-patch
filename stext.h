@@ -54,7 +54,7 @@ struct icon {
 	RsvgRectangle viewport;
 };
 
-struct wifi_icons {
+struct wireless_icons {
 	struct icon disabled;
 	struct icon good;
 	struct icon okay;
@@ -62,15 +62,19 @@ struct wifi_icons {
 	struct icon none;
 };
 
-struct wifi_info {
-	char *network_name;
+struct network_info {
+	char *name;
 	int quality;
+};
+
+struct system_info {
+	struct network_info network;
 };
 
 // TODO rename Drwl to something like statusbar?
 // Plus make it not a typedef. That is confusing.
 struct Drwl {
-	struct wifi_icons wifi;
+	struct wireless_icons wifi;
 
 	// font context. used for getting font height
 	// prior to any surface creation
@@ -92,7 +96,7 @@ struct Drwl {
 	uint32_t *scheme;
 };
 
-void formatstatusbar(char *stext);
+void formatstatusbar(struct system_info *info, char *stext);
 
 struct Drwl *drwl_create(const char *font);
 

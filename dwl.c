@@ -447,6 +447,8 @@ static struct statusbar{
 	// timed event source
 	// this is for updating the status information
 	struct wl_event_source *timed_event_source;
+
+	struct system_info system_info;
 } statusbar;
 
 static const struct wlr_buffer_impl buffer_impl = {
@@ -2831,7 +2833,7 @@ int
 status_in(void *data)
 {
 	struct statusbar *bar = data;
-	formatstatusbar(stext);
+	formatstatusbar(&bar->system_info, stext);
 	drawbars();
 
 	// reset the timer back to 45 seconds.
@@ -3096,7 +3098,7 @@ updatemons(struct wl_listener *listener, void *data)
 	}
 
 	if (stext[0] == '\0')
-		formatstatusbar(stext);
+		formatstatusbar(&statusbar.system_info, stext);
 	wl_list_for_each(m, &mons, link) {
 		updatebar(m);
 		drawbar(m);

@@ -261,7 +261,7 @@ static void formatnetwork(char **c) {
 	*c += strlen(*c);
 }
 
-void formatstatusbar(char *stext) {
+void formatstatusbar(struct system_info *info, char *stext) {
 	char *ptr = stext;
 
 	formatnetwork(&ptr);
