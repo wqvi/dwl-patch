@@ -296,14 +296,17 @@ static void set_color(cairo_t *cr, uint32_t hex) {
 }
 
 static void draw_wireless_icon(struct Drwl *drwl, struct network_info *info, int x, int y, int w, int h) {
-	struct icon *icon = &drwl->wireless.good;
-	if (info->quality < 75) {
-		icon = &drwl->wireless.okay;
-	} else if (info->quality < 50) {
-		icon = &drwl->wireless.weak;
-	} else if (info->quality < 25) {
+	struct icon *icon = NULL;
+	if (info->quality <= 25) {
 		icon = &drwl->wireless.none;
+	} else if (info->quality <= 50) {
+		icon = &drwl->wireless.weak;
+	} else if (info->quality <= 75) {
+		icon = &drwl->wireless.okay;
+	} else if (info->quality <= 100) {
+		icon = &drwl->wireless.good;
 	}
+
 	render_icon(drwl, icon, x, y, w, h);
 }
 
@@ -316,7 +319,7 @@ static void draw_network_info(struct Drwl *drwl, struct network_info *info, int 
 		case Wireless:
 			set_color(drwl->context, drwl->scheme[ColFg]);
 			drwl_rounded_rect(drwl, x - w, y, w, h, 4);
-			draw_wireless_icon(drwl, info, x - w, y, w, h);
+			draw_wireless_icon(drwl, info, x - w + SVG_SURFACE_SCALE / 2, y, w, h);
 			text_width = drwl_font_getwidth(drwl, info->name) + drwl->font_height;
 			drwl_text(drwl, x, y, text_width, 0, 2, info->name, 0);
 			break;
