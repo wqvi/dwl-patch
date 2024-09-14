@@ -29,7 +29,6 @@
  */
 #pragma once
 
-#include <cairo.h>
 #include <pango/pangocairo.h>
 #include <librsvg/rsvg.h>
 
