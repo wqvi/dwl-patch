@@ -293,7 +293,7 @@ static void load_icon(const char *file, struct icon *icon) {
 	icon->viewport.y = 0.0;
 }
 
-Drwl *drwl_create(const char *font_name, unsigned int font_size) {
+Drwl *drwl_create(const char *font) {
 	Drwl *drwl;
 	// this variable is for getting the font height
 	// this is for calculating parts of the bar prior
@@ -312,8 +312,7 @@ Drwl *drwl_create(const char *font_name, unsigned int font_size) {
 	font_map = pango_cairo_font_map_get_default();
 	drwl->pango_context = pango_font_map_create_context(font_map);
 
-	// TODO replace the hardcoded string with one from config.def.h
-	drwl->pango_description = pango_font_description_from_string("LiberationMono 12");
+	drwl->pango_description = pango_font_description_from_string(font);
 	// Get font metrics and use the metrics to get the font height
 	metrics = pango_context_get_metrics(drwl->pango_context, drwl->pango_description, NULL);
 	font_height = (float)pango_font_metrics_get_height(metrics) / (float)PANGO_SCALE;

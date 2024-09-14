@@ -1138,7 +1138,7 @@ createmon(struct wl_listener *listener, void *data)
 	wlr_output_state_finish(&state);
 
 	// why do we not seperate these, this is far more clear.
-	m->drw = drwl_create("Monospace", 12);
+	m->drw = drwl_create(font);
 	if (!m->drw) {
 		die("failed to create drwl context");
 	}

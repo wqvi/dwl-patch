@@ -88,7 +88,7 @@ typedef struct {
 	uint32_t *scheme;
 } Drwl;
 
-Drwl *drwl_create(const char *font_name, unsigned int font_size);
+Drwl *drwl_create(const char *font);
 
 void drwl_prepare_drawing(Drwl *drwl, int w, int h, int stride, unsigned char *data);
 
