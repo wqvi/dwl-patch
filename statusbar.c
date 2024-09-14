@@ -275,12 +275,12 @@ void formatstatusbar(char *stext) {
 	formatdate(&ptr);
 }
 
+// TODO remove and/or update
+// drwl - aka the statusbar needs to have access
+// to the well statusbar information. So there should be a pointer
+// to drwl pass in here.
 void statusbar(char *stext) {
-	static time_t start = 0;
-	if (time(NULL) - start > 60) {
-		formatstatusbar(stext);
-		start = time(NULL);
-	}
+	formatstatusbar(stext);
 }
 
 static void load_icon(const char *file, struct icon *icon) {	
