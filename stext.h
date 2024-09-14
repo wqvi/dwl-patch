@@ -27,6 +27,7 @@
  * Copyright (c) 2008-2010 Bjoern Hoehrmann <bjoern@hoehrmann.de>
  * See http://bjoern.hoehrmann.de/utf-8/decoder/dfa/ for details.
  */
+// TODO rename this file
 #pragma once
 
 #include <pango/pangocairo.h>
@@ -39,6 +40,7 @@
 #undef MIN
 
 // color scheme index enumeration
+// see colors variable in config.def.h
 enum {
 	ColFg,
 	ColBg,
@@ -65,6 +67,8 @@ struct wifi_info {
 	int quality;
 };
 
+// TODO rename Drwl to something like statusbar?
+// Plus make it not a typedef. That is confusing.
 typedef struct {
 	struct wifi_icons wifi;
 
