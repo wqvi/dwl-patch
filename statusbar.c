@@ -194,7 +194,7 @@ static int resolve_ifname(struct iwreq *_rq) {
 	return 0;
 }
 
-static void formatnetwork(char **c) {
+static void formatnetwork(struct network_info *info, char **c) {
 	struct iwreq rq;
 	int fd;
 	struct sockaddr_in *in;
@@ -259,12 +259,18 @@ static void formatnetwork(char **c) {
 	// I prefer the status to end without a seperator.
 	snprintf(*c, size, "%s %d%% %s %s | ", essid, quality, rq.ifr_name, addr);
 	*c += strlen(*c);
+
+	// lets just default to wireless for now (this is bad lol)
+	info->type = Wireless;
+
+	memcpy(info->name, essid, strlen(essid));
+	info->quality = quality;
 }
 
 void formatstatusbar(struct system_info *info, char *stext) {
 	char *ptr = stext;
 
-	formatnetwork(&ptr);
+	formatnetwork(&info->network, &ptr);
 
 	formatram(&ptr);
 
