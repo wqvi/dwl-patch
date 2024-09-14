@@ -47,6 +47,17 @@ enum {
 	ColBorder
 };
 
+enum network_type {
+	Disconnected,
+	Wired,
+	Wireless,
+
+	// TODO definitely on the farthest back of the backburners.
+	// Adwaita supports cellular icons but this will take some
+	// work, plus a machine with cellular capabilities.
+	Cellular
+};
+
 struct icon {
 	RsvgHandle *handle;
 	cairo_surface_t *surface;
@@ -63,6 +74,7 @@ struct wireless_icons {
 };
 
 struct network_info {
+	enum network_type type;
 	char *name;
 	int quality;
 };
