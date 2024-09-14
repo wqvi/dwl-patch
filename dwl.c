@@ -221,7 +221,7 @@ struct Monitor {
 	int nmaster;
 	char ltsymbol[16];
 	int asleep;
-	Drwl *drw;
+	struct Drwl *drw;
 	int lrpad;
 };
 

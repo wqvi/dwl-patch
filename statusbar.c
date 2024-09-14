@@ -297,8 +297,8 @@ static void load_icon(const char *file, struct icon *icon) {
 	icon->viewport.y = 0.0;
 }
 
-Drwl *drwl_create(const char *font) {
-	Drwl *drwl;
+struct Drwl *drwl_create(const char *font) {
+	struct Drwl *drwl;
 	// this variable is for getting the font height
 	// this is for calculating parts of the bar prior
 	// to any rendering
@@ -306,7 +306,7 @@ Drwl *drwl_create(const char *font) {
 	PangoFontMetrics *metrics;
 	float font_height;
 	
-	drwl = calloc(1, sizeof(Drwl));
+	drwl = calloc(1, sizeof(struct Drwl));
 	if (!drwl) {
 		fprintf(stderr, "Failed to allocate memory for status bar\n");
 		return NULL;
@@ -334,7 +334,7 @@ Drwl *drwl_create(const char *font) {
 	return drwl;
 }
 
-void drwl_prepare_drawing(Drwl *drwl, int w, int h, int stride, unsigned char *data) {
+void drwl_prepare_drawing(struct Drwl *drwl, int w, int h, int stride, unsigned char *data) {
 	// create all the necessary information to write to the wayland buffer
 	drwl->surface = cairo_image_surface_create_for_data(data, CAIRO_FORMAT_ARGB32, w, h, stride);
 	drwl->context = cairo_create(drwl->surface);
@@ -351,7 +351,7 @@ static void set_color(cairo_t *cr, uint32_t hex) {
 	cairo_set_source_rgba(cr, r, g, b, a);
 }
 
-void drwl_rect(Drwl *drwl,
+void drwl_rect(struct Drwl *drwl,
 		int x, int y, unsigned int w, unsigned int h,
 		int filled, int invert) {
 	uint32_t clr = drwl->scheme[invert ? ColBg : ColFg];
@@ -378,7 +378,7 @@ void drwl_rect(Drwl *drwl,
 	}
 }
 
-void render_icon(Drwl *drwl, struct icon *icon, double x, double y, int w, int h) {
+void render_icon(struct Drwl *drwl, struct icon *icon, double x, double y, int w, int h) {
 	GError *error = NULL;
 
 	icon->viewport.width = w - SVG_SURFACE_SCALE;
@@ -394,7 +394,7 @@ void render_icon(Drwl *drwl, struct icon *icon, double x, double y, int w, int h
 	cairo_paint(drwl->context);
 }
 
-int drwl_text(Drwl *drwl,
+int drwl_text(struct Drwl *drwl,
 		int x, int y, int w, int h,
 		unsigned int lpad, const char *text, int invert) {
 	PangoRectangle rect;
@@ -441,14 +441,14 @@ int drwl_text(Drwl *drwl,
 	return x + (render ? w : 0);
 }
 
-unsigned int drwl_font_getwidth(Drwl *drwl, const char *text) {
+unsigned int drwl_font_getwidth(struct Drwl *drwl, const char *text) {
 	PangoRectangle extent;
 	pango_layout_set_text(drwl->pango_layout, text, -1);
 	pango_layout_get_extents(drwl->pango_layout, NULL, &extent);
 	return (unsigned int)extent.width / PANGO_SCALE;
 }
 
-void drwl_finish_drawing(Drwl *drwl) {
+void drwl_finish_drawing(struct Drwl *drwl) {
 	g_object_unref(drwl->pango_layout);
 	cairo_destroy(drwl->context);
 	cairo_surface_destroy(drwl->surface);
@@ -460,7 +460,7 @@ void destroy_icon(struct icon *icon) {
 	g_object_unref(icon->handle);
 }
 
-void drwl_destroy(Drwl *drwl) {
+void drwl_destroy(struct Drwl *drwl) {
 	pango_font_description_free(drwl->pango_description);
 
 	g_object_unref(drwl->pango_context);

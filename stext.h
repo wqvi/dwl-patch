@@ -69,7 +69,7 @@ struct wifi_info {
 
 // TODO rename Drwl to something like statusbar?
 // Plus make it not a typedef. That is confusing.
-typedef struct {
+struct Drwl {
 	struct wifi_icons wifi;
 
 	// font context. used for getting font height
@@ -90,30 +90,30 @@ typedef struct {
 	PangoLayout *pango_layout;
 
 	uint32_t *scheme;
-} Drwl;
+};
 
 void formatstatusbar(char *stext);
 
 void statusbar(char *stext);
 
-Drwl *drwl_create(const char *font);
+struct Drwl *drwl_create(const char *font);
 
-void drwl_prepare_drawing(Drwl *drwl, int w, int h, int stride, unsigned char *data);
+void drwl_prepare_drawing(struct Drwl *drwl, int w, int h, int stride, unsigned char *data);
 
-void drwl_rect(Drwl *drwl,
+void drwl_rect(struct Drwl *drwl,
 		int x, int y, unsigned int w, unsigned int h,
 		int filled, int invert);
 
-void render_icon(Drwl *drwl, struct icon *icon, double x, double y, int w, int h);
+void render_icon(struct Drwl *drwl, struct icon *icon, double x, double y, int w, int h);
 
-int drwl_text(Drwl *drwl,
+int drwl_text(struct Drwl *drwl,
 		int x, int y, int w, int h,
 		unsigned int lpad, const char *text, int invert);
 
-unsigned int drwl_font_getwidth(Drwl *drwl, const char *text);
+unsigned int drwl_font_getwidth(struct Drwl *drwl, const char *text);
 
-void drwl_finish_drawing(Drwl *drwl);
+void drwl_finish_drawing(struct Drwl *drwl);
 
 void destroy_icon(struct icon *icon);
 
-void drwl_destroy(Drwl *drwl);
+void drwl_destroy(struct Drwl *drwl);
