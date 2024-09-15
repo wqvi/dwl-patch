@@ -1490,7 +1490,7 @@ drawbar(Monitor *m)
 	if (m == selmon) { /* status is only drawn on selected monitor */
 		m->drw->scheme = color;
 		tw = TEXTW(m, stext) - m->lrpad + 2; /* 2px right padding */
-		drwl_text(m->drw, m->b.width - tw, 0, tw, m->b.height, 0, stext, 0);
+		//drwl_text(m->drw, m->b.width - tw, 0, tw, m->b.height, 0, stext, 0);
 		// this renders left to right
 		// yes this is kinda backwards but it makes sense to me
 		draw_system_info(m->drw, &statusbar.system_info, m->b.width, 0);

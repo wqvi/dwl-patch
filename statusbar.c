@@ -311,17 +311,22 @@ static void draw_wireless_icon(struct Drwl *drwl, struct network_info *info, int
 }
 
 static void draw_network_info(struct Drwl *drwl, struct network_info *info, int x, int y, int w, int h) {
+	int icon_x;
 	int text_width;
+	int text_x;
 	switch (info->type) {
 		case Disconnected:
 			render_icon(drwl, &drwl->wireless.disconnected, x, y, w, h);
 			break;
 		case Wireless:
+			icon_x = x - w + (int)(SVG_SURFACE_SCALE / 2.0);
+			text_width = drwl_font_getwidth(drwl, info->name);
+			text_x = x - w - text_width;
+
 			set_color(drwl->context, drwl->scheme[ColFg]);
-			drwl_rounded_rect(drwl, x - w, y, w, h, 4);
-			draw_wireless_icon(drwl, info, x - w + SVG_SURFACE_SCALE / 2, y, w, h);
-			text_width = drwl_font_getwidth(drwl, info->name) + drwl->font_height;
-			drwl_text(drwl, x, y, text_width, 0, 2, info->name, 0);
+			drwl_rounded_rect(drwl, text_x, y, w + text_width, h, 4);
+			draw_wireless_icon(drwl, info, icon_x, y, w, h);
+			drwl_text(drwl, text_x, y, text_width, 0, 2, info->name, 1);
 			break;
 		default:
 			return;
