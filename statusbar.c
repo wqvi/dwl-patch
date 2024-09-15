@@ -29,6 +29,8 @@
 
 #define DEG_TO_RADS(x) ((x) * (G_PI / 180.0))
 
+#define NETWORK_PANEL_PADDING (2)
+
 static void formatdate(char **s) {
 	time_t now = time(NULL);
 	struct tm *tm = localtime(&now);
@@ -321,12 +323,12 @@ static void draw_network_info(struct Drwl *drwl, struct network_info *info, int 
 		case Wireless:
 			icon_x = x - w + (int)(SVG_SURFACE_SCALE / 2.0);
 			text_width = drwl_font_getwidth(drwl, info->name);
-			text_x = x - w - text_width;
+			text_x = x - w - text_width - NETWORK_PANEL_PADDING;
 
 			set_color(drwl->context, drwl->scheme[ColFg]);
-			drwl_rounded_rect(drwl, text_x, y, w + text_width, h, 4);
+			drwl_rounded_rect(drwl, text_x, y, w + text_width + NETWORK_PANEL_PADDING, h, 4);
 			draw_wireless_icon(drwl, info, icon_x, y, w, h);
-			drwl_text(drwl, text_x, y, text_width, 0, 2, info->name, 1);
+			drwl_text(drwl, text_x + NETWORK_PANEL_PADDING / 2, y, text_width, 0, 0, info->name, 1);
 			break;
 		default:
 			return;
@@ -457,10 +459,6 @@ void render_icon(struct Drwl *drwl, struct icon *icon, double x, double y, int w
 int drwl_text(struct Drwl *drwl,
 		int x, int y, int w, int h,
 		unsigned int lpad, const char *text, int invert) {
-	PangoRectangle rect;
-	float surface_height;
-	float height;
-	float text_y;
 	int render = x || y || w || h;
 	uint32_t clr = drwl->scheme[ColFg];
 
@@ -482,20 +480,8 @@ int drwl_text(struct Drwl *drwl,
 	// the text
 	set_color(drwl->context, clr);
 
-	// calculate the position to center the text
-	pango_layout_get_extents(drwl->pango_layout, NULL, &rect);
-	pango_layout_set_text(drwl->pango_layout, text, -1);
-	surface_height = (float)cairo_image_surface_get_height(drwl->surface);
-	// wow pango library is annoying since I have
-	// to divide every value from the library by the
-	// PANGO_SCALE constant
-	height = rect.height / PANGO_SCALE;
-
-	// actually calculate the center of the y axis
-	text_y = (surface_height - height) / 2.0f;
-
 	// render the text
-	cairo_move_to(drwl->context, x, text_y);
+	cairo_move_to(drwl->context, x, y);
 	pango_cairo_show_layout(drwl->context, drwl->pango_layout);
 
 	return x + (render ? w : 0);
