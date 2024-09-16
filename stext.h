@@ -185,9 +185,9 @@ struct Drwl {
 	uint32_t *scheme;
 };
 
-void formatstatusbar(struct system_info *info, char *stext);
+void formatstatusbar(struct system_info *info);
 
-void draw_system_info(struct Drwl *drwl, struct system_info *info, int x, int y);
+int draw_system_info(struct Drwl *drwl, struct system_info *info, int x, int y);
 
 struct Drwl *drwl_create(const char *font);
 

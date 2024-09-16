@@ -12,12 +12,6 @@
 #include <linux/wireless.h>
 #include <sys/ioctl.h>
 
-#define DATEOFFSET (24)
-#define BATOFFSET (24)
-#define TEMPOFFSET (16)
-#define RAMOFFSET (16)
-#define NETOFFSET (48)
-
 #define AC "/sys/class/power_supply/AC/"
 #define BAT0 "/sys/class/power_supply/BAT0/"
 
@@ -32,16 +26,13 @@
 #define PANEL_PADDING (4)
 #define PANEL_SPACE (8)
 
-static void formatdate(struct time_info *date, char **s) {
+static void formatdate(struct time_info *date) {
 	time_t now = time(NULL);
 	struct tm *tm = localtime(&now);
 	if (tm == NULL) return;
 
 	// ISO Date format, 12 hours
 	// YYYY-MM-DD HH:MM AM/PM
-	strftime(*s, DATEOFFSET, " | %F %I:%M %p", tm);
-	*s += strlen(*s);
-
 	strftime(date->date, DATE_STR_MAX, "%F %I:%M %p", tm);
 }
 
@@ -72,7 +63,7 @@ error:
 	return 1;
 }
 
-static void formatbat(struct battery_info *info, char **s) {
+static void formatbat(struct battery_info *info) {
 	char buffer[SYSBUFSIZ];
 	int capacity;
 	int plugged_in;
@@ -114,12 +105,9 @@ static void formatbat(struct battery_info *info, char **s) {
 		info->status = Inhibited;
 		break;
 	}
-
-	snprintf(*s, BATOFFSET, " | BAT0 %d%% %s", capacity, status);
-	*s += strlen(*s);
 }
 
-static void formattemp(struct temp_info *temp, char **s) {
+static void formattemp(struct temp_info *temp) {
 	char buffer[SYSBUFSIZ];
 	int celsius;
 	
@@ -129,9 +117,6 @@ static void formattemp(struct temp_info *temp, char **s) {
 
 	celsius = (int)(strtod(buffer, NULL) / 1000.0);
 
-	snprintf(*s, TEMPOFFSET, " | %d\U000000B0C", celsius);
-	*s += strlen(*s);
-
 	snprintf(temp->celsius, TEMP_STR_MAX, "%d\U000000B0C", celsius);
 }
 
@@ -139,7 +124,7 @@ static int cmp(const char *_haystack, const char *_needle) {
 	return (strncmp(_haystack, _needle, strlen(_needle)) == 0);
 }
 
-static void formatram(struct memory_info *info, char **s) {
+static void formatram(struct memory_info *info) {
 	long double memtotal = 0;
 	long double memfree = 0;
 	long double buffers = 0;
@@ -169,9 +154,6 @@ static void formatram(struct memory_info *info, char **s) {
 	fclose(fp);
 
 	memused = (memtotal - memfree - buffers - cached) / gb;
-
-	snprintf(*s, RAMOFFSET, "%.1LfGb/%.1LfGb", memused, memtotal / gb);
-	*s += strlen(*s);
 
 	snprintf(info->usage_ratio, MEMORY_STR_MAX, "%.1LfGb/%.1LfGb", memused, memtotal / gb);
 }
@@ -217,7 +199,7 @@ static int resolve_ifname(struct iwreq *_rq) {
 	return 0;
 }
 
-static void formatnetwork(struct network_info *info, char **c) {
+static void formatnetwork(struct network_info *info) {
 	struct iwreq rq;
 	int fd;
 	struct sockaddr_in *in;
@@ -226,7 +208,6 @@ static void formatnetwork(struct network_info *info, char **c) {
 	struct iw_statistics stats;
 	struct iw_range range;
 	int quality = 0;
-	volatile size_t size = NETOFFSET; // suppress compiler truncation warning
 	
 	// default to disconnected just in case network is off
 	info->type = Disconnected;
@@ -281,11 +262,6 @@ static void formatnetwork(struct network_info *info, char **c) {
 		quality = (stats.qual.qual * 100) / range.max_qual.qual;
 	}
 
-	// have network print the seperator.
-	// I prefer the status to end without a seperator.
-	snprintf(*c, size, "%s %d%% %s %s | ", essid, quality, rq.ifr_name, addr);
-	*c += strlen(*c);
-
 	// lets just default to wireless for now (this is bad lol)
 	info->type = Wireless;
 
@@ -293,18 +269,16 @@ static void formatnetwork(struct network_info *info, char **c) {
 	info->quality = quality;
 }
 
-void formatstatusbar(struct system_info *info, char *stext) {
-	char *ptr = stext;
+void formatstatusbar(struct system_info *info) {
+	formatnetwork(&info->network);
 
-	formatnetwork(&info->network, &ptr);
+	formatram(&info->memory);
 
-	formatram(&info->memory, &ptr);
+	formattemp(&info->temp);
 
-	formattemp(&info->temp, &ptr);
+	formatbat(&info->charge);
 
-	formatbat(&info->charge, &ptr);
-
-	formatdate(&info->date, &ptr);
+	formatdate(&info->date);
 }
 
 static void set_color(cairo_t *cr, uint32_t hex) {
@@ -476,7 +450,7 @@ static int draw_panel_text(struct Drwl *drwl, char *text, int x, int y) {
 	return text_x - PANEL_SPACE;
 }
 
-void draw_system_info(struct Drwl *drwl, struct system_info *info, int x, int y) {
+int draw_system_info(struct Drwl *drwl, struct system_info *info, int x, int y) {
 	int panel_x = x;
 
 	// starts from left to right
@@ -489,6 +463,8 @@ void draw_system_info(struct Drwl *drwl, struct system_info *info, int x, int y)
 	panel_x = draw_panel_text(drwl, info->memory.usage_ratio, panel_x, y);
 
 	panel_x = draw_network_info(drwl, &info->network, panel_x, y);
+
+	return panel_x;
 }
 
 static void load_icon(const char *file, struct icon *icon) {	

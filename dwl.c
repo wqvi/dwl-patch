@@ -442,7 +442,6 @@ static struct wlr_box sgeom;
 static struct wl_list mons;
 static Monitor *selmon;
 
-static char stext[256];
 static struct statusbar{
 	// timed event source
 	// this is for updating the status information
@@ -714,10 +713,11 @@ buttonpress(struct wl_listener *listener, void *data)
 			arg.ui = 1 << i;
 		} else if (cursor->x < x + TEXTW(selmon, selmon->ltsymbol))
 			click = ClkLtSymbol;
-		else if (cursor->x > selmon->w.width - (int)TEXTW(selmon, stext))
+		// TODO
+		/*else if (cursor->x > selmon->w.width - (int)TEXTW(selmon, stext))
 			click = ClkStatus;
 		else
-			click = ClkTitle;
+			click = ClkTitle;*/
 	}
 
 	switch (event->state) {
@@ -1489,11 +1489,11 @@ drawbar(Monitor *m)
 	/* draw status first so it can be overdrawn by tags later */
 	if (m == selmon) { /* status is only drawn on selected monitor */
 		m->drw->scheme = color;
-		tw = TEXTW(m, stext) - m->lrpad + 2; /* 2px right padding */
+		//tw = TEXTW(m, stext) - m->lrpad + 2; /* 2px right padding */
 		//drwl_text(m->drw, m->b.width - tw, 0, tw, m->b.height, 0, stext, 0);
 		// this renders left to right
 		// yes this is kinda backwards but it makes sense to me
-		draw_system_info(m->drw, &statusbar.system_info, m->b.width, 0);
+		tw = m->b.width + draw_system_info(m->drw, &statusbar.system_info, m->b.width, 0);
 	}
 
 	wl_list_for_each(c, &clients, link) {
@@ -2836,7 +2836,7 @@ int
 status_in(void *data)
 {
 	struct statusbar *bar = data;
-	formatstatusbar(&bar->system_info, stext);
+	formatstatusbar(&bar->system_info);
 	drawbars();
 
 	// reset the timer back to 45 seconds.
@@ -3100,8 +3100,8 @@ updatemons(struct wl_listener *listener, void *data)
 		}
 	}
 
-	if (stext[0] == '\0')
-		formatstatusbar(&statusbar.system_info, stext);
+	// TODO figure out how to make this not constantly update
+	formatstatusbar(&statusbar.system_info);
 	wl_list_for_each(m, &mons, link) {
 		updatebar(m);
 		drawbar(m);
