@@ -349,7 +349,7 @@ static int draw_network_info(struct Drwl *drwl, struct network_info *info, int x
 	drwl_text(drwl, text_x, y, 0, 0, 0, info->name, 1);
 	render_icon(drwl, icon, icon_x, y);
 
-	return rect_width;
+	return rect_width - PANEL_SPACE;
 }
 
 static struct icon *get_discharging_icon(struct Drwl *drwl, struct battery_info *info) {
