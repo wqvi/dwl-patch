@@ -82,6 +82,14 @@ struct network_info {
 	int quality;
 };
 
+struct memory_info {
+	// these values are only estimates and don't
+	// actually accurately represent the actual
+	// memory footprint of a active machine
+	long double memused;
+	long double memtotal;
+};
+
 // it's probably only going to be a string but I will make
 // this a struct anyways!
 struct time_info {
@@ -90,6 +98,7 @@ struct time_info {
 
 struct system_info {
 	struct network_info network;
+	struct memory_info memory;
 	struct time_info date;
 };
 

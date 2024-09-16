@@ -25,7 +25,6 @@
 #define ADWAITA_THEME_DIR "/usr/share/icons/Adwaita/symbolic"
 #define SVG_SURFACE_WIDTH (64)
 #define SVG_SURFACE_HEIGHT (64)
-#define SVG_SURFACE_SCALE (2.0)
 
 #define DEG_TO_RADS(x) ((x) * (G_PI / 180.0))
 
@@ -125,7 +124,7 @@ static int cmp(const char *_haystack, const char *_needle) {
 	return (strncmp(_haystack, _needle, strlen(_needle)) == 0);
 }
 
-static void formatram(char **s) {
+static void formatram(struct memory_info *info, char **s) {
 	long double memtotal = 0;
 	long double memfree = 0;
 	long double buffers = 0;
@@ -158,6 +157,9 @@ static void formatram(char **s) {
 
 	snprintf(*s, RAMOFFSET, "%.1LfGb/%.1LfGb", memused, memtotal / gb);
 	*s += strlen(*s);
+
+	info->memused = memused;
+	info->memtotal = memtotal / gb;
 }
 
 static int resolve_ifname(struct iwreq *_rq) {
@@ -282,7 +284,7 @@ void formatstatusbar(struct system_info *info, char *stext) {
 
 	formatnetwork(&info->network, &ptr);
 
-	formatram(&ptr);
+	formatram(&info->memory, &ptr);
 
 	formattemp(&ptr);
 
@@ -326,8 +328,8 @@ static void draw_network_info(struct Drwl *drwl, struct network_info *info, int 
 			break;
 		case Wireless:
 			icon = get_wireless_icon(drwl, info);
-			icon_x = x - icon->viewport.width;
-			text_width = drwl_font_getwidth(drwl, info->name) + icon->viewport.width;
+			icon_x = x - (int)icon->viewport.width;
+			text_width = drwl_font_getwidth(drwl, info->name) + (int)icon->viewport.width;
 			text_x = x - text_width - PANEL_PADDING;
 
 			set_color(drwl->context, drwl->scheme[ColFg]);
