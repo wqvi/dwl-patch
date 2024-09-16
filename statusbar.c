@@ -491,6 +491,18 @@ struct Drwl *drwl_create(const char *font) {
 	load_icon(ADWAITA_THEME_DIR "/status/battery-level-90-charging-symbolic.svg", &drwl->battery.charging._90);
 	load_icon(ADWAITA_THEME_DIR "/status/battery-level-100-charged-symbolic.svg", &drwl->battery.charging._100);
 
+	load_icon(ADWAITA_THEME_DIR "/status/battery-level-0-symbolic.svg", &drwl->battery.discharging._0);
+	load_icon(ADWAITA_THEME_DIR "/status/battery-level-10-symbolic.svg", &drwl->battery.discharging._10);
+	load_icon(ADWAITA_THEME_DIR "/status/battery-level-20-symbolic.svg", &drwl->battery.discharging._20);
+	load_icon(ADWAITA_THEME_DIR "/status/battery-level-30-symbolic.svg", &drwl->battery.discharging._30);
+	load_icon(ADWAITA_THEME_DIR "/status/battery-level-40-symbolic.svg", &drwl->battery.discharging._40);
+	load_icon(ADWAITA_THEME_DIR "/status/battery-level-50-symbolic.svg", &drwl->battery.discharging._50);
+	load_icon(ADWAITA_THEME_DIR "/status/battery-level-60-symbolic.svg", &drwl->battery.discharging._60);
+	load_icon(ADWAITA_THEME_DIR "/status/battery-level-70-symbolic.svg", &drwl->battery.discharging._70);
+	load_icon(ADWAITA_THEME_DIR "/status/battery-level-80-symbolic.svg", &drwl->battery.discharging._80);
+	load_icon(ADWAITA_THEME_DIR "/status/battery-level-90-symbolic.svg", &drwl->battery.discharging._90);
+	load_icon(ADWAITA_THEME_DIR "/status/battery-level-100-symbolic.svg", &drwl->battery.discharging._100);
+
 	pango_font_metrics_unref(metrics);
 
 	return drwl;
@@ -614,6 +626,7 @@ void drwl_destroy(struct Drwl *drwl) {
 
 	g_object_unref(drwl->pango_context);
 
+	// TODO
 	// yknow I could probably do this more graciously
 	// like making a list of icons.
 	// but also I am lazy currently. I will do it later
@@ -635,6 +648,17 @@ void drwl_destroy(struct Drwl *drwl) {
 	destroy_icon(&drwl->battery.charging._80);
 	destroy_icon(&drwl->battery.charging._90);
 	destroy_icon(&drwl->battery.charging._100);
+
+	destroy_icon(&drwl->battery.discharging._0);
+	destroy_icon(&drwl->battery.discharging._20);
+	destroy_icon(&drwl->battery.discharging._30);
+	destroy_icon(&drwl->battery.discharging._40);
+	destroy_icon(&drwl->battery.discharging._50);
+	destroy_icon(&drwl->battery.discharging._60);
+	destroy_icon(&drwl->battery.discharging._70);
+	destroy_icon(&drwl->battery.discharging._80);
+	destroy_icon(&drwl->battery.discharging._90);
+	destroy_icon(&drwl->battery.discharging._100);
 
 	free(drwl);
 }
