@@ -96,6 +96,7 @@ static void formatbat(struct battery_info *info, char **s) {
 	case 'C':
 		snprintf(status, 4, "CHR");
 		info->status = Charging;
+		puts("h");
 		break;
 	case 'F':
 		snprintf(status, 4, "FUL");
@@ -354,34 +355,101 @@ static void draw_network_info(struct Drwl *drwl, struct network_info *info, int 
 	}
 }
 
-static struct icon *get_battery_icon(struct Drwl *drwl, struct battery_info *info) {
+static struct icon *get_discharging_icon(struct Drwl *drwl, struct battery_info *info) {
 	struct icon *icon = NULL;
+	if (info->capacity < 5) {
+		icon = &drwl->battery.discharging._0;
+	} else if (info->capacity < 15) {
+		icon = &drwl->battery.discharging._10;
+	} else if (info->capacity < 25) {
+		icon = &drwl->battery.discharging._20;
+	} else if (info->capacity < 35) {
+		icon = &drwl->battery.discharging._30;
+	} else if (info->capacity < 45) {
+		icon = &drwl->battery.discharging._40;
+	} else if (info->capacity < 55) {
+		icon = &drwl->battery.discharging._50;
+	} else if (info->capacity < 65) {
+		icon = &drwl->battery.discharging._60;
+	} else if (info->capacity < 75) {
+		icon = &drwl->battery.discharging._70;
+	} else if (info->capacity < 85) {
+		icon = &drwl->battery.discharging._80;
+	} else if (info->capacity < 95) {
+		icon = &drwl->battery.discharging._90;
+	} else {
+		icon = &drwl->battery.discharging._100;
+	}
 
 	return icon;
 }
 
+static struct icon *get_charging_icon(struct Drwl *drwl, struct battery_info *info) {
+	struct icon *icon = NULL;
+	if (info->capacity < 5) {
+		icon = &drwl->battery.charging._100;
+	} else if (info->capacity < 15) {
+		icon = &drwl->battery.charging._10;
+	} else if (info->capacity < 25) {
+		icon = &drwl->battery.charging._20;
+	} else if (info->capacity < 35) {
+		icon = &drwl->battery.charging._30;
+	} else if (info->capacity < 45) {
+		icon = &drwl->battery.charging._40;
+	} else if (info->capacity < 55) {
+		icon = &drwl->battery.charging._50;
+	} else if (info->capacity < 65) {
+		icon = &drwl->battery.charging._60;
+	} else if (info->capacity < 75) {
+		icon = &drwl->battery.charging._70;
+	} else if (info->capacity < 85) {
+		icon = &drwl->battery.charging._80;
+	} else if (info->capacity < 95) {
+		icon = &drwl->battery.charging._90;
+	} else {
+		icon = &drwl->battery.charging._100;
+	}
+
+	return icon;
+}
+
+static struct icon *get_battery_icon(struct Drwl *drwl, struct battery_info *info) {
+	switch (info->status) {
+		case Discharging:
+			return get_discharging_icon(drwl, info);
+		case Charging:
+			return get_charging_icon(drwl, info);
+		
+		// TODO for both inhibited and full (or think this through better)
+		// I need to know if AC is plugged in through
+		// /sys/class/power_supply/AC/online
+
+		case Full:
+			return &drwl->battery.discharging._100;
+		case Inhibited:
+			return &drwl->battery.charging._100;
+		default:
+			return NULL;
+	}
+}
+
 static int draw_battery_info(struct Drwl *drwl, struct battery_info *info, int x, int y) {
+	struct icon *icon = get_battery_icon(drwl, info);
 	int rect_width;
 	int rect_x;
 	int icon_x;
-	struct icon *icon;
-	switch (info->status) {
-		case Discharging:
-			return x;
-		case Full:
-			icon = &drwl->battery.charging._100;
 
-			rect_width = (int)icon->viewport.width + PANEL_PADDING;
-			rect_x = x - rect_width;
-			icon_x = rect_x + PANEL_PADDING / 2;
-			
-			set_color(drwl->context, drwl->scheme[ColFg]);
-			drwl_rounded_rect(drwl, rect_x, y, rect_width, drwl->font_height, 4);
-			render_icon(drwl, icon, icon_x, y);
-			break;
-		default:
-			return x;
+	if (icon == NULL) {
+		return x;
 	}
+
+	rect_width = (int)icon->viewport.width + PANEL_PADDING;
+	rect_x = x - rect_width;
+	icon_x = rect_x + PANEL_PADDING / 2;
+
+	set_color(drwl->context, drwl->scheme[ColFg]);
+	drwl_rounded_rect(drwl, rect_x, y, rect_width, drwl->font_height, 4);
+	render_icon(drwl, icon, icon_x, y);
 
 	return icon_x - PANEL_SPACE;
 }
