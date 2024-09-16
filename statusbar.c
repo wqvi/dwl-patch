@@ -106,18 +106,20 @@ static void formatbat(char **s) {
 	*s += strlen(*s);
 }
 
-static void formattemp(char **s) {
+static void formattemp(struct temp_info *temp, char **s) {
 	char buffer[SYSBUFSIZ];
-	int temp;
+	int celsius;
 	
 	if (sysread(buffer, "/sys/class/thermal/thermal_zone0/temp")) {
 		return;
 	}
 
-	temp = (int)(strtod(buffer, NULL) / 1000.0);
+	celsius = (int)(strtod(buffer, NULL) / 1000.0);
 
-	snprintf(*s, TEMPOFFSET, " | %d\U000000B0C", temp);
+	snprintf(*s, TEMPOFFSET, " | %d\U000000B0C", celsius);
 	*s += strlen(*s);
+
+	snprintf(temp->celsius, TEMP_STR_MAX, "%d\U000000B0C", celsius);
 }
 
 static int cmp(const char *_haystack, const char *_needle) {
@@ -285,7 +287,7 @@ void formatstatusbar(struct system_info *info, char *stext) {
 
 	formatram(&info->memory, &ptr);
 
-	formattemp(&ptr);
+	formattemp(&info->temp, &ptr);
 
 	formatbat(&ptr);
 
@@ -356,6 +358,17 @@ static void draw_memory_info(struct Drwl *drwl, struct memory_info *info, int *x
 	*x -= text_width + PANEL_SPACE;
 }
 
+static void draw_temp_info(struct Drwl *drwl, struct temp_info *info, int *x, int y) {
+	int text_width = drwl_font_getwidth(drwl, info->celsius);
+	int text_x = *x - text_width - PANEL_PADDING;
+
+	set_color(drwl->context, drwl->scheme[ColFg]);
+	drwl_rounded_rect(drwl, text_x, y, text_width + PANEL_PADDING, drwl->font_height, 4);
+	drwl_text(drwl, text_x + PANEL_PADDING / 2, y, 0, 0, 0, info->celsius, 1);
+
+	*x -= text_width + PANEL_SPACE;
+}
+
 static void draw_time_info(struct Drwl *drwl, struct time_info *info, int *x, int y) {
 	int text_width = drwl_font_getwidth(drwl, info->date);
 	int text_x = *x - text_width - PANEL_PADDING;
@@ -366,7 +379,7 @@ static void draw_time_info(struct Drwl *drwl, struct time_info *info, int *x, in
 	// subtract from panel x by panel space to move left.
 	// see comment in draw_system_info function
 	// so I made a mistake but this is just to fix the issue with the network panel
-	*x -= text_width + PANEL_SPACE - PANEL_PADDING;
+	*x -= text_width + PANEL_SPACE;
 }
 
 void draw_system_info(struct Drwl *drwl, struct system_info *info, int x, int y) {
@@ -377,9 +390,11 @@ void draw_system_info(struct Drwl *drwl, struct system_info *info, int x, int y)
 
 	draw_memory_info(drwl, &info->memory, &panel_x, y);
 
+	draw_temp_info(drwl, &info->temp, &panel_x, y);
+
 	// this is the farthest left panel.
 	// no need to pass panel_x variable by address
-	draw_network_info(drwl, &info->network, panel_x, y);
+	draw_network_info(drwl, &info->network, panel_x - PANEL_PADDING, y);
 }
 
 static void load_icon(const char *file, struct icon *icon) {	

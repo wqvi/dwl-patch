@@ -42,6 +42,7 @@
 
 #define DATE_STR_MAX (32)
 #define MEMORY_STR_MAX (16)
+#define TEMP_STR_MAX (16)
 
 // color scheme index enumeration
 // see colors variable in config.def.h
@@ -83,14 +84,20 @@ struct network_info {
 	int quality;
 };
 
-// it's also probably only going to be a string. But
-// alas I will make this a struct anyways
+// these structs are probably only going to be
+// filled with a string. However it makes the
+// organization seem slightly more logical.
+// not to mention I can edit them easily
+// if need be!
+
 struct memory_info {
 	char usage_ratio[MEMORY_STR_MAX];
 };
 
-// it's probably only going to be a string but I will make
-// this a struct anyways!
+struct temp_info {
+	char celsius[TEMP_STR_MAX];
+};
+
 struct time_info {
 	char date[DATE_STR_MAX];
 };
@@ -98,6 +105,7 @@ struct time_info {
 struct system_info {
 	struct network_info network;
 	struct memory_info memory;
+	struct temp_info temp;
 	struct time_info date;
 };
 
