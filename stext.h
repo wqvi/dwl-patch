@@ -142,6 +142,7 @@ struct temp_info {
 };
 
 struct battery_info {
+	int plugged_in;
 	int capacity;
 	enum battery_status status;
 };

@@ -1,7 +1,6 @@
 #include "stext.h"
 
 #include <stdio.h>
-#include <stdbool.h>
 #include <time.h>
 #include <fcntl.h>
 #include <stdlib.h>
@@ -19,6 +18,7 @@
 #define RAMOFFSET (16)
 #define NETOFFSET (48)
 
+#define AC "/sys/class/power_supply/AC/"
 #define BAT0 "/sys/class/power_supply/BAT0/"
 
 #define SYSBUFSIZ (4096)
@@ -75,12 +75,20 @@ error:
 static void formatbat(struct battery_info *info, char **s) {
 	char buffer[SYSBUFSIZ];
 	int capacity;
+	int plugged_in;
 	char status[4] = "UNK";
+
+	if (sysread(buffer, AC "online")) {
+		return;
+	}
+	plugged_in = (int)strtol(buffer, NULL, 0);
+	info->plugged_in = plugged_in;
 
 	if (sysread(buffer, BAT0 "capacity")) {
 		return;
 	}
 	capacity = (int)strtol(buffer, NULL, 0);
+	info->capacity = capacity;
 	
 	if (sysread(buffer, BAT0 "status")) {
 		return;
@@ -109,8 +117,6 @@ static void formatbat(struct battery_info *info, char **s) {
 
 	snprintf(*s, BATOFFSET, " | BAT0 %d%% %s", capacity, status);
 	*s += strlen(*s);
-
-	info->capacity = capacity;
 }
 
 static void formattemp(struct temp_info *temp, char **s) {
@@ -416,12 +422,10 @@ static struct icon *get_battery_icon(struct Drwl *drwl, struct battery_info *inf
 			return get_discharging_icon(drwl, info);
 		case Charging:
 			return get_charging_icon(drwl, info);
-		
-		// TODO for both inhibited and full (or think this through better)
-		// I need to know if AC is plugged in through
-		// /sys/class/power_supply/AC/online
-
 		case Full:
+			if (info->plugged_in) {
+				return &drwl->battery.charging._100;
+			}
 			return &drwl->battery.discharging._100;
 		case Inhibited:
 			return &drwl->battery.charging._100;
@@ -466,7 +470,7 @@ static int draw_panel_text(struct Drwl *drwl, char *text, int x, int y) {
 
 	// don't draw text background, thus don't provide width & height
 	// this is leftover logic from sewn's drwl statusbar
-	drwl_text(drwl, text_x, y, 0, 0, 0, text, true);
+	drwl_text(drwl, text_x, y, 0, 0, 0, text, 1);
 
 	// move left to next panel x position
 	return text_x - PANEL_SPACE;
