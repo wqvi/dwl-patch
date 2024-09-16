@@ -480,9 +480,9 @@ void draw_system_info(struct Drwl *drwl, struct system_info *info, int x, int y)
 
 	panel_x = draw_battery_info(drwl, &info->charge, panel_x, y);
 
-	panel_x = draw_panel_text(drwl, info->memory.usage_ratio, panel_x, y);
-
 	panel_x = draw_panel_text(drwl, info->temp.celsius, panel_x, y);
+
+	panel_x = draw_panel_text(drwl, info->memory.usage_ratio, panel_x, y);
 
 	panel_x = draw_network_info(drwl, &info->network, panel_x, y);
 }
