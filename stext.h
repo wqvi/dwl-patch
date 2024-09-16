@@ -40,6 +40,8 @@
 #undef MAX
 #undef MIN
 
+#define DATE_STR_MAX (32)
+
 // color scheme index enumeration
 // see colors variable in config.def.h
 enum {
@@ -80,8 +82,15 @@ struct network_info {
 	int quality;
 };
 
+// it's probably only going to be a string but I will make
+// this a struct anyways!
+struct time_info {
+	char date[DATE_STR_MAX];
+};
+
 struct system_info {
 	struct network_info network;
+	struct time_info date;
 };
 
 // TODO rename Drwl to something like statusbar?
@@ -125,7 +134,7 @@ void drwl_rounded_rect(struct Drwl *drwl,
 		double x, double y, unsigned int w, unsigned int h,
 		double radius);
 
-void render_icon(struct Drwl *drwl, struct icon *icon, double x, double y, int w, int h);
+void render_icon(struct Drwl *drwl, struct icon *icon, double x, double y);
 
 int drwl_text(struct Drwl *drwl,
 		int x, int y, int w, int h,
