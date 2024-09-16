@@ -41,6 +41,7 @@
 #undef MIN
 
 #define DATE_STR_MAX (32)
+#define MEMORY_STR_MAX (16)
 
 // color scheme index enumeration
 // see colors variable in config.def.h
@@ -82,12 +83,10 @@ struct network_info {
 	int quality;
 };
 
+// it's also probably only going to be a string. But
+// alas I will make this a struct anyways
 struct memory_info {
-	// these values are only estimates and don't
-	// actually accurately represent the actual
-	// memory footprint of a active machine
-	long double memused;
-	long double memtotal;
+	char usage_ratio[MEMORY_STR_MAX];
 };
 
 // it's probably only going to be a string but I will make

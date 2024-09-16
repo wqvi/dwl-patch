@@ -158,8 +158,7 @@ static void formatram(struct memory_info *info, char **s) {
 	snprintf(*s, RAMOFFSET, "%.1LfGb/%.1LfGb", memused, memtotal / gb);
 	*s += strlen(*s);
 
-	info->memused = memused;
-	info->memtotal = memtotal / gb;
+	snprintf(info->usage_ratio, MEMORY_STR_MAX, "%.1LfGb/%.1LfGb", memused, memtotal / gb);
 }
 
 static int resolve_ifname(struct iwreq *_rq) {
@@ -346,6 +345,17 @@ static void draw_network_info(struct Drwl *drwl, struct network_info *info, int 
 	}
 }
 
+static void draw_memory_info(struct Drwl *drwl, struct memory_info *info, int *x, int y) {
+	int text_width = drwl_font_getwidth(drwl, info->usage_ratio);
+	int text_x = *x - text_width - PANEL_PADDING;
+
+	set_color(drwl->context, drwl->scheme[ColFg]);
+	drwl_rounded_rect(drwl, text_x, y, text_width + PANEL_PADDING, drwl->font_height, 4);
+	drwl_text(drwl, text_x + PANEL_PADDING / 2, y, 0, 0, 0, info->usage_ratio, 1);
+
+	*x -= text_width + PANEL_SPACE;
+}
+
 static void draw_time_info(struct Drwl *drwl, struct time_info *info, int *x, int y) {
 	int text_width = drwl_font_getwidth(drwl, info->date);
 	int text_x = *x - text_width - PANEL_PADDING;
@@ -355,7 +365,8 @@ static void draw_time_info(struct Drwl *drwl, struct time_info *info, int *x, in
 
 	// subtract from panel x by panel space to move left.
 	// see comment in draw_system_info function
-	*x -= text_width + PANEL_SPACE;
+	// so I made a mistake but this is just to fix the issue with the network panel
+	*x -= text_width + PANEL_SPACE - PANEL_PADDING;
 }
 
 void draw_system_info(struct Drwl *drwl, struct system_info *info, int x, int y) {
@@ -363,6 +374,8 @@ void draw_system_info(struct Drwl *drwl, struct system_info *info, int x, int y)
 
 	// starts from left to right
 	draw_time_info(drwl, &info->date, &panel_x, y);
+
+	draw_memory_info(drwl, &info->memory, &panel_x, y);
 
 	// this is the farthest left panel.
 	// no need to pass panel_x variable by address
