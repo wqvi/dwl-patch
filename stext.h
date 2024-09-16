@@ -63,6 +63,14 @@ enum network_type {
 	Cellular
 };
 
+enum battery_status {
+	Discharging,
+	Charging,
+	Full,
+	// shorthand word for "not charging"
+	Inhibited
+};
+
 struct icon {
 	RsvgHandle *handle;
 	cairo_surface_t *surface;
@@ -76,6 +84,41 @@ struct wireless_icons {
 	struct icon okay;
 	struct icon weak;
 	struct icon none;
+};
+
+// not a typical naming scheme.
+// the underscore is just so it compiles
+struct charging_icons {
+	struct icon _10;
+	struct icon _20;
+	struct icon _30;
+	struct icon _40;
+	struct icon _50;
+	struct icon _60;
+	struct icon _70;
+	struct icon _80;
+	struct icon _90;
+	struct icon _100;
+};
+
+struct symbolic_icons {
+	struct icon _0;
+	struct icon _10;
+	struct icon _20;
+	struct icon _30;
+	struct icon _40;
+	struct icon _50;
+	struct icon _60;
+	struct icon _70;
+	struct icon _80;
+	struct icon _90;
+	struct icon _100;
+};
+
+struct battery_icons {
+	struct charging_icons charging;
+	struct symbolic_icons symbolic;
+
 };
 
 struct network_info {
@@ -98,6 +141,11 @@ struct temp_info {
 	char celsius[TEMP_STR_MAX];
 };
 
+struct battery_info {
+	int capacity;
+	enum battery_status status;
+};
+
 struct time_info {
 	char date[DATE_STR_MAX];
 };
@@ -106,6 +154,7 @@ struct system_info {
 	struct network_info network;
 	struct memory_info memory;
 	struct temp_info temp;
+	struct battery_info charge;
 	struct time_info date;
 };
 
@@ -113,6 +162,7 @@ struct system_info {
 // Plus make it not a typedef. That is confusing.
 struct Drwl {
 	struct wireless_icons wireless;
+	struct battery_icons battery;
 
 	// font context. used for getting font height
 	// prior to any surface creation

@@ -72,7 +72,7 @@ error:
 	return 1;
 }
 
-static void formatbat(char **s) {
+static void formatbat(struct battery_info *info, char **s) {
 	char buffer[SYSBUFSIZ];
 	int capacity;
 	char status[4] = "UNK";
@@ -91,20 +91,26 @@ static void formatbat(char **s) {
 	switch (buffer[0]) {
 	case 'D':
 		snprintf(status, 4, "DIS");
+		info->status = Discharging;
 		break;
 	case 'C':
 		snprintf(status, 4, "CHR");
+		info->status = Charging;
 		break;
 	case 'F':
 		snprintf(status, 4, "FUL");
+		info->status = Full;
 		break;
 	case 'N':
 		snprintf(status, 4, "INH");
+		info->status = Inhibited;
 		break;
 	}
 
 	snprintf(*s, BATOFFSET, " | BAT0 %d%% %s", capacity, status);
 	*s += strlen(*s);
+
+	info->capacity = capacity;
 }
 
 static void formattemp(struct temp_info *temp, char **s) {
@@ -290,7 +296,7 @@ void formatstatusbar(struct system_info *info, char *stext) {
 
 	formattemp(&info->temp, &ptr);
 
-	formatbat(&ptr);
+	formatbat(&info->charge, &ptr);
 
 	formatdate(&info->date, &ptr);
 }
@@ -348,6 +354,38 @@ static void draw_network_info(struct Drwl *drwl, struct network_info *info, int 
 	}
 }
 
+static struct icon *get_battery_icon(struct Drwl *drwl, struct battery_info *info) {
+	struct icon *icon = NULL;
+
+	return icon;
+}
+
+static int draw_battery_info(struct Drwl *drwl, struct battery_info *info, int x, int y) {
+	int rect_width;
+	int rect_x;
+	int icon_x;
+	struct icon *icon;
+	switch (info->status) {
+		case Discharging:
+			return x;
+		case Full:
+			icon = &drwl->battery.charging._100;
+
+			rect_width = (int)icon->viewport.width + PANEL_PADDING;
+			rect_x = x - rect_width;
+			icon_x = rect_x + PANEL_PADDING / 2;
+			
+			set_color(drwl->context, drwl->scheme[ColFg]);
+			drwl_rounded_rect(drwl, rect_x, y, rect_width, drwl->font_height, 4);
+			render_icon(drwl, icon, icon_x, y);
+			break;
+		default:
+			return x;
+	}
+
+	return icon_x - PANEL_SPACE;
+}
+
 static int draw_panel_text(struct Drwl *drwl, char *text, int x, int y) {
 	int rect_width = drwl_font_getwidth(drwl, text) + PANEL_PADDING;
 	// rectangle origin is the top left. Therefore
@@ -375,9 +413,12 @@ void draw_system_info(struct Drwl *drwl, struct system_info *info, int x, int y)
 	// starts from left to right
 	panel_x = draw_panel_text(drwl, info->date.date, panel_x, y);
 
+	panel_x = draw_battery_info(drwl, &info->charge, panel_x, y);
+
 	panel_x = draw_panel_text(drwl, info->memory.usage_ratio, panel_x, y);
 
 	panel_x = draw_panel_text(drwl, info->temp.celsius, panel_x, y);
+
 
 	// this is the farthest left panel.
 	// no need to pass panel_x variable by address
@@ -437,6 +478,18 @@ struct Drwl *drwl_create(const char *font) {
 	load_icon(ADWAITA_THEME_DIR "/status/network-wireless-signal-ok-symbolic.svg", &drwl->wireless.okay);
 	load_icon(ADWAITA_THEME_DIR "/status/network-wireless-signal-weak-symbolic.svg", &drwl->wireless.weak);
 	load_icon(ADWAITA_THEME_DIR "/status/network-wireless-signal-none-symbolic.svg", &drwl->wireless.none);
+
+	// load all the icons necessary for the battery
+	load_icon(ADWAITA_THEME_DIR "/status/battery-level-10-charging-symbolic.svg", &drwl->battery.charging._10);
+	load_icon(ADWAITA_THEME_DIR "/status/battery-level-20-charging-symbolic.svg", &drwl->battery.charging._20);
+	load_icon(ADWAITA_THEME_DIR "/status/battery-level-30-charging-symbolic.svg", &drwl->battery.charging._30);
+	load_icon(ADWAITA_THEME_DIR "/status/battery-level-40-charging-symbolic.svg", &drwl->battery.charging._40);
+	load_icon(ADWAITA_THEME_DIR "/status/battery-level-50-charging-symbolic.svg", &drwl->battery.charging._50);
+	load_icon(ADWAITA_THEME_DIR "/status/battery-level-60-charging-symbolic.svg", &drwl->battery.charging._60);
+	load_icon(ADWAITA_THEME_DIR "/status/battery-level-70-charging-symbolic.svg", &drwl->battery.charging._70);
+	load_icon(ADWAITA_THEME_DIR "/status/battery-level-80-charging-symbolic.svg", &drwl->battery.charging._80);
+	load_icon(ADWAITA_THEME_DIR "/status/battery-level-90-charging-symbolic.svg", &drwl->battery.charging._90);
+	load_icon(ADWAITA_THEME_DIR "/status/battery-level-100-charged-symbolic.svg", &drwl->battery.charging._100);
 
 	pango_font_metrics_unref(metrics);
 
@@ -561,11 +614,27 @@ void drwl_destroy(struct Drwl *drwl) {
 
 	g_object_unref(drwl->pango_context);
 
+	// yknow I could probably do this more graciously
+	// like making a list of icons.
+	// but also I am lazy currently. I will do it later
+	//
+	// "Implement it first. Then fix the issues."
 	destroy_icon(&drwl->wireless.disconnected);
 	destroy_icon(&drwl->wireless.good);
 	destroy_icon(&drwl->wireless.okay);
 	destroy_icon(&drwl->wireless.weak);
 	destroy_icon(&drwl->wireless.none);
+
+	destroy_icon(&drwl->battery.charging._10);
+	destroy_icon(&drwl->battery.charging._20);
+	destroy_icon(&drwl->battery.charging._30);
+	destroy_icon(&drwl->battery.charging._40);
+	destroy_icon(&drwl->battery.charging._50);
+	destroy_icon(&drwl->battery.charging._60);
+	destroy_icon(&drwl->battery.charging._70);
+	destroy_icon(&drwl->battery.charging._80);
+	destroy_icon(&drwl->battery.charging._90);
+	destroy_icon(&drwl->battery.charging._100);
 
 	free(drwl);
 }
