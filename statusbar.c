@@ -96,7 +96,6 @@ static void formatbat(struct battery_info *info, char **s) {
 	case 'C':
 		snprintf(status, 4, "CHR");
 		info->status = Charging;
-		puts("h");
 		break;
 	case 'F':
 		snprintf(status, 4, "FUL");
@@ -326,33 +325,31 @@ static struct icon *get_wireless_icon(struct Drwl *drwl, struct network_info *in
 	return icon;
 }
 
-static void draw_network_info(struct Drwl *drwl, struct network_info *info, int x, int y) {
-	int icon_x;
-	int text_width;
+static int draw_network_info(struct Drwl *drwl, struct network_info *info, int x, int y) {
+	struct icon *icon = get_wireless_icon(drwl, info);
+	int rect_width;
+	int rect_x;
 	int text_x;
-	struct icon *icon;
-	switch (info->type) {
-		case Disconnected:
-			//render_icon(drwl, &drwl->wireless.disconnected, *x, y, w, h);
-			break;
-		case Wireless:
-			icon = get_wireless_icon(drwl, info);
-			icon_x = x - (int)icon->viewport.width;
-			text_width = drwl_font_getwidth(drwl, info->name) + (int)icon->viewport.width;
-			text_x = x - text_width - PANEL_PADDING;
+	int icon_x;
 
-			set_color(drwl->context, drwl->scheme[ColFg]);
-			// yes this has magic numbers
-			// why? Idk it's aligned and that's what matters.
-			// I think the most important thing to not is the panel padding needing to be
-			// doubled for the rect. This is to make up for the text padding and icon padding
-			drwl_rounded_rect(drwl, text_x, y, text_width + PANEL_PADDING * 2, drwl->font_height, 4);
-			render_icon(drwl, icon, icon_x + PANEL_PADDING / 2, y);
-			drwl_text(drwl, text_x + PANEL_PADDING / 2, y, 0, 0, 0, info->name, 1);
-			break;
-		default:
-			return;
+	if (icon == NULL) {
+		return x;
 	}
+
+	// double the padding because we are putting text & icon
+	// into this panel. Yes we could make a constant but this magic number
+	// reappears in appropriate places that one could intuit what it means.
+	rect_width = drwl_font_getwidth(drwl, info->name) + (int)icon->viewport.width + PANEL_PADDING * 2;
+	rect_x = x - rect_width;
+	text_x = rect_x + PANEL_PADDING / 2;
+	icon_x = x - ((int)icon->viewport.width + PANEL_PADDING);
+
+	set_color(drwl->context, drwl->scheme[ColFg]);
+	drwl_rounded_rect(drwl, rect_x, y, rect_width, drwl->font_height, 4);
+	drwl_text(drwl, text_x, y, 0, 0, 0, info->name, 1);
+	render_icon(drwl, icon, icon_x, y);
+
+	return rect_width;
 }
 
 static struct icon *get_discharging_icon(struct Drwl *drwl, struct battery_info *info) {
@@ -487,10 +484,7 @@ void draw_system_info(struct Drwl *drwl, struct system_info *info, int x, int y)
 
 	panel_x = draw_panel_text(drwl, info->temp.celsius, panel_x, y);
 
-
-	// this is the farthest left panel.
-	// no need to pass panel_x variable by address
-	draw_network_info(drwl, &info->network, panel_x, y);
+	panel_x = draw_network_info(drwl, &info->network, panel_x, y);
 }
 
 static void load_icon(const char *file, struct icon *icon) {	
