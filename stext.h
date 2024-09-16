@@ -101,7 +101,7 @@ struct charging_icons {
 	struct icon _100;
 };
 
-struct symbolic_icons {
+struct discharging_icons {
 	struct icon _0;
 	struct icon _10;
 	struct icon _20;
@@ -117,7 +117,7 @@ struct symbolic_icons {
 
 struct battery_icons {
 	struct charging_icons charging;
-	struct symbolic_icons symbolic;
+	struct discharging_icons discharging;
 
 };
 
