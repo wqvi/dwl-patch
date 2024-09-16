@@ -329,7 +329,7 @@ static int draw_network_info(struct Drwl *drwl, struct network_info *info, int x
 	drwl_text(drwl, text_x, y, 0, 0, 0, info->name, 1);
 	render_icon(drwl, icon, icon_x, y);
 
-	return rect_width - PANEL_SPACE;
+	return rect_x - PANEL_SPACE;
 }
 
 static struct icon *get_discharging_icon(struct Drwl *drwl, struct battery_info *info) {
@@ -426,7 +426,7 @@ static int draw_battery_info(struct Drwl *drwl, struct battery_info *info, int x
 	drwl_rounded_rect(drwl, rect_x, y, rect_width, drwl->font_height, 4);
 	render_icon(drwl, icon, icon_x, y);
 
-	return icon_x - PANEL_SPACE;
+	return rect_x - PANEL_SPACE;
 }
 
 static int draw_panel_text(struct Drwl *drwl, char *text, int x, int y) {
@@ -447,7 +447,7 @@ static int draw_panel_text(struct Drwl *drwl, char *text, int x, int y) {
 	drwl_text(drwl, text_x, y, 0, 0, 0, text, 1);
 
 	// move left to next panel x position
-	return text_x - PANEL_SPACE;
+	return rect_x - PANEL_SPACE;
 }
 
 int draw_system_info(struct Drwl *drwl, struct system_info *info, int x, int y) {
@@ -464,7 +464,8 @@ int draw_system_info(struct Drwl *drwl, struct system_info *info, int x, int y) 
 
 	panel_x = draw_network_info(drwl, &info->network, panel_x, y);
 
-	return panel_x;
+	// undo the last panel's spacing
+	return panel_x + PANEL_SPACE;
 }
 
 static void load_icon(const char *file, struct icon *icon) {	
@@ -630,6 +631,8 @@ int drwl_text(struct Drwl *drwl,
 		x += lpad;
 		w -= lpad;
 	}
+
+	pango_layout_set_text(drwl->pango_layout, text, -1);
 
 	// set current color, in this case for the font
 	// this is to emulate the pixman_image_composite32 operations

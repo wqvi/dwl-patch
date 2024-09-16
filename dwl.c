@@ -1493,7 +1493,8 @@ drawbar(Monitor *m)
 		//drwl_text(m->drw, m->b.width - tw, 0, tw, m->b.height, 0, stext, 0);
 		// this renders left to right
 		// yes this is kinda backwards but it makes sense to me
-		tw = m->b.width + draw_system_info(m->drw, &statusbar.system_info, m->b.width, 0);
+		tw = draw_system_info(m->drw, &statusbar.system_info, m->b.width, 0);
+		tw = m->b.width - tw;
 	}
 
 	wl_list_for_each(c, &clients, link) {
@@ -1517,10 +1518,10 @@ drawbar(Monitor *m)
 		}
 		x += w;
 	}
-	w = TEXTW(m, m->ltsymbol);
-	m->drw->scheme = colors[SchemeNorm];
 
-	if ((w = m->b.width - tw - x) > m->b.height) {
+	w = m->b.width - tw - x;
+
+	if (w > m->b.height) {
 		if (c) {
 			m->drw->scheme = colors[m == selmon ? SchemeSel : SchemeNorm];
 			color = colors[m == selmon ? SchemeSel : SchemeNorm];
@@ -1528,7 +1529,7 @@ drawbar(Monitor *m)
 		} else {
 			m->drw->scheme = colors[SchemeNorm];
 			color = colors[SchemeNorm];
-			drwl_rect(m->drw, x, 0, w, m->b.height, 1, 1);
+			drwl_rect(m->drw, x, 0, w, m->b.height, 0, 1);
 		}
 	}
 
