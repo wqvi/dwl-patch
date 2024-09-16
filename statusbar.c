@@ -300,7 +300,7 @@ static void set_color(cairo_t *cr, uint32_t hex) {
 	cairo_set_source_rgba(cr, r, g, b, a);
 }
 
-static void draw_wireless_icon(struct Drwl *drwl, struct network_info *info, int x, int y) {
+static struct icon *get_wireless_icon(struct Drwl *drwl, struct network_info *info) {
 	struct icon *icon = NULL;
 	if (info->quality <= 25) {
 		icon = &drwl->wireless.none;
@@ -308,29 +308,35 @@ static void draw_wireless_icon(struct Drwl *drwl, struct network_info *info, int
 		icon = &drwl->wireless.weak;
 	} else if (info->quality <= 75) {
 		icon = &drwl->wireless.okay;
-	} else if (info->quality <= 100) {
+	} else {
 		icon = &drwl->wireless.good;
 	}
 
-	render_icon(drwl, icon, x, y);
+	return icon;
 }
 
 static void draw_network_info(struct Drwl *drwl, struct network_info *info, int x, int y) {
 	int icon_x;
 	int text_width;
 	int text_x;
+	struct icon *icon;
 	switch (info->type) {
 		case Disconnected:
 			//render_icon(drwl, &drwl->wireless.disconnected, *x, y, w, h);
 			break;
 		case Wireless:
-			icon_x = x - (int)(SVG_SURFACE_SCALE / 2.0);
-			text_width = drwl_font_getwidth(drwl, info->name);
+			icon = get_wireless_icon(drwl, info);
+			icon_x = x - icon->viewport.width;
+			text_width = drwl_font_getwidth(drwl, info->name) + icon->viewport.width;
 			text_x = x - text_width - PANEL_PADDING;
 
 			set_color(drwl->context, drwl->scheme[ColFg]);
-			drwl_rounded_rect(drwl, text_x, y, text_width + PANEL_PADDING, drwl->font_height, 4);
-			draw_wireless_icon(drwl, info, icon_x, y);
+			// yes this has magic numbers
+			// why? Idk it's aligned and that's what matters.
+			// I think the most important thing to not is the panel padding needing to be
+			// doubled for the rect. This is to make up for the text padding and icon padding
+			drwl_rounded_rect(drwl, text_x, y, text_width + PANEL_PADDING * 2, drwl->font_height, 4);
+			render_icon(drwl, icon, icon_x + PANEL_PADDING / 2, y);
 			drwl_text(drwl, text_x + PANEL_PADDING / 2, y, 0, 0, 0, info->name, 1);
 			break;
 		default:
