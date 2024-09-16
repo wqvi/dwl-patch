@@ -1,6 +1,7 @@
 #include "stext.h"
 
 #include <stdio.h>
+#include <stdbool.h>
 #include <time.h>
 #include <fcntl.h>
 #include <stdlib.h>
@@ -28,7 +29,7 @@
 
 #define DEG_TO_RADS(x) ((x) * (G_PI / 180.0))
 
-#define PANEL_PADDING (2)
+#define PANEL_PADDING (4)
 #define PANEL_SPACE (8)
 
 static void formatdate(struct time_info *date, char **s) {
@@ -347,54 +348,40 @@ static void draw_network_info(struct Drwl *drwl, struct network_info *info, int 
 	}
 }
 
-static void draw_memory_info(struct Drwl *drwl, struct memory_info *info, int *x, int y) {
-	int text_width = drwl_font_getwidth(drwl, info->usage_ratio);
-	int text_x = *x - text_width - PANEL_PADDING;
+static int draw_panel_text(struct Drwl *drwl, char *text, int x, int y) {
+	int rect_width = drwl_font_getwidth(drwl, text) + PANEL_PADDING;
+	// rectangle origin is the top left. Therefore
+	// you must move it to the left of the width of the rectangle
+	// to not have it render off the side of the screen
+	int rect_x = x - rect_width;
+	// inch forward by half the padding (to center it)
+	int text_x = rect_x + PANEL_PADDING / 2;
 
 	set_color(drwl->context, drwl->scheme[ColFg]);
-	drwl_rounded_rect(drwl, text_x, y, text_width + PANEL_PADDING, drwl->font_height, 4);
-	drwl_text(drwl, text_x + PANEL_PADDING / 2, y, 0, 0, 0, info->usage_ratio, 1);
+	// add padding to take into account the offset text (which is half of padding)
+	drwl_rounded_rect(drwl, rect_x, y, rect_width, drwl->font_height, 4);
 
-	*x -= text_width + PANEL_SPACE;
-}
+	// don't draw text background, thus don't provide width & height
+	// this is leftover logic from sewn's drwl statusbar
+	drwl_text(drwl, text_x, y, 0, 0, 0, text, true);
 
-static void draw_temp_info(struct Drwl *drwl, struct temp_info *info, int *x, int y) {
-	int text_width = drwl_font_getwidth(drwl, info->celsius);
-	int text_x = *x - text_width - PANEL_PADDING;
-
-	set_color(drwl->context, drwl->scheme[ColFg]);
-	drwl_rounded_rect(drwl, text_x, y, text_width + PANEL_PADDING, drwl->font_height, 4);
-	drwl_text(drwl, text_x + PANEL_PADDING / 2, y, 0, 0, 0, info->celsius, 1);
-
-	*x -= text_width + PANEL_SPACE;
-}
-
-static void draw_time_info(struct Drwl *drwl, struct time_info *info, int *x, int y) {
-	int text_width = drwl_font_getwidth(drwl, info->date);
-	int text_x = *x - text_width - PANEL_PADDING;
-	set_color(drwl->context, drwl->scheme[ColFg]);
-	drwl_rounded_rect(drwl, text_x, y, text_width + PANEL_PADDING, drwl->font_height, 4);
-	drwl_text(drwl, text_x + PANEL_PADDING / 2, y, 0, 0, 0, info->date, 1);
-
-	// subtract from panel x by panel space to move left.
-	// see comment in draw_system_info function
-	// so I made a mistake but this is just to fix the issue with the network panel
-	*x -= text_width + PANEL_SPACE;
+	// move left to next panel x position
+	return text_x - PANEL_SPACE;
 }
 
 void draw_system_info(struct Drwl *drwl, struct system_info *info, int x, int y) {
 	int panel_x = x;
 
 	// starts from left to right
-	draw_time_info(drwl, &info->date, &panel_x, y);
+	panel_x = draw_panel_text(drwl, info->date.date, panel_x, y);
 
-	draw_memory_info(drwl, &info->memory, &panel_x, y);
+	panel_x = draw_panel_text(drwl, info->memory.usage_ratio, panel_x, y);
 
-	draw_temp_info(drwl, &info->temp, &panel_x, y);
+	panel_x = draw_panel_text(drwl, info->temp.celsius, panel_x, y);
 
 	// this is the farthest left panel.
 	// no need to pass panel_x variable by address
-	draw_network_info(drwl, &info->network, panel_x - PANEL_PADDING, y);
+	draw_network_info(drwl, &info->network, panel_x, y);
 }
 
 static void load_icon(const char *file, struct icon *icon) {	
