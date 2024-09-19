@@ -133,9 +133,9 @@ static const char *backlightdecrease[] = { "xbacklight", "-dec", "10", NULL };
 static const char *volumeincrease[] = { "pactl", "set-sink-volume", "@DEFAULT_SINK@", "+5%", NULL };
 static const char *volumedecrease[] = { "pactl", "set-sink-volume", "@DEFAULT_SINK@", "-5%", NULL };
 static const char *volumemute[] = { "pactl", "set-sink-mute", "@DEFAULT_SINK@", "toggle", NULL };
-static const char *playerctl_playpause[] = { "playerctl", "play-pause" };
-static const char *playerctl_next[] = { "playerctl", "next" };
-static const char *playerctl_previous[] = { "playerctl", "previous" };
+static const char *playerctl_playpause[] = { "playerctl", "play-pause", NULL };
+static const char *playerctl_next[] = { "playerctl", "next", NULL };
+static const char *playerctl_previous[] = { "playerctl", "previous", NULL };
 
 static const Key keys[] = {
 	/* Note that Shift changes certain key codes: c -> C, 2 -> at, etc. */
@@ -157,6 +157,8 @@ static const Key keys[] = {
 	{ MODKEY,                    XKB_KEY_period,     focusmon,       {.i = WLR_DIRECTION_RIGHT} },
 	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_less,       tagmon,         {.i = WLR_DIRECTION_LEFT} },
 	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_greater,    tagmon,         {.i = WLR_DIRECTION_RIGHT} },
+	{ 0, XKB_KEY_Print, spawn, SHCMD("grim -c - | wl-copy -t image/png") },
+	{ WLR_MODIFIER_CTRL, XKB_KEY_Print, spawn, SHCMD("grim -g \"$(slurp -d)\" -c - | wl-copy -t image/png") },
 	TAGKEYS(          XKB_KEY_1, XKB_KEY_exclam,                         0),
 	TAGKEYS(          XKB_KEY_2, XKB_KEY_at,                         1),
 	TAGKEYS(          XKB_KEY_3, XKB_KEY_numbersign,                 2),
