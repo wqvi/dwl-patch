@@ -21,7 +21,7 @@
 #define SVG_SURFACE_WIDTH (64)
 #define SVG_SURFACE_HEIGHT (64)
 
-#define DEG_TO_RADS(x) ((x) * (G_PI / 180.0))
+#define DEG_TO_RAD(x) ((x) * (G_PI / 180.0))
 
 #define PANEL_PADDING (4)
 #define PANEL_SPACE (8)
@@ -592,10 +592,10 @@ void drwl_rounded_rect(struct Drwl *drwl,
 	cairo_t *cr = drwl->context;
 
 	cairo_new_sub_path(cr);
-	cairo_arc(cr, x + w - radius, y + radius, radius, DEG_TO_RADS(-90), 0);
-	cairo_arc(cr, x + w - radius, y + h - radius, radius, 0, DEG_TO_RADS(90));
-	cairo_arc(cr, x + radius, y + h - radius, radius, DEG_TO_RADS(90), DEG_TO_RADS(180));
-	cairo_arc(cr, x + radius, y + radius, radius, DEG_TO_RADS(180), DEG_TO_RADS(270));
+	cairo_arc(cr, x + w - radius, y + radius, radius, DEG_TO_RAD(-90), 0);
+	cairo_arc(cr, x + w - radius, y + h - radius, radius, 0, DEG_TO_RAD(90));
+	cairo_arc(cr, x + radius, y + h - radius, radius, DEG_TO_RAD(90), DEG_TO_RAD(180));
+	cairo_arc(cr, x + radius, y + radius, radius, DEG_TO_RAD(180), DEG_TO_RAD(270));
 	cairo_close_path(cr);
 
 	cairo_fill(cr);
