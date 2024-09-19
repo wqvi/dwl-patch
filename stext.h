@@ -187,8 +187,6 @@ struct Drwl {
 
 	cairo_surface_t *surface;
 	cairo_t *context;
-	// used for rendering text to the surface
-	PangoLayout *pango_layout;
 
 	uint32_t *scheme;
 };
