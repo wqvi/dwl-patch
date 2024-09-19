@@ -177,7 +177,7 @@ static const Key keys[] = {
 };
 
 static const Button buttons[] = {
-	{ ClkRoot, MODKEY | WLR_MODIFIER_SHIFT, BTN_SIDE, spawn, { .v = playerctl_playpause } },
-	{ ClkRoot, MODKEY, BTN_EXTRA, spawn, { .v = playerctl_next } },
-	{ ClkRoot, MODKEY, BTN_SIDE, spawn, { .v = playerctl_previous } },
+	{ MODKEY | WLR_MODIFIER_SHIFT, BTN_SIDE, spawn, { .v = playerctl_playpause } },
+	{ MODKEY, BTN_EXTRA, spawn, { .v = playerctl_next } },
+	{ MODKEY, BTN_SIDE, spawn, { .v = playerctl_previous } },
 };
