@@ -325,7 +325,7 @@ static int draw_network_info(struct Drwl *drwl, struct network_info *info, int x
 	icon_x = x - ((int)icon->viewport.width + PANEL_PADDING);
 
 	set_color(drwl->context, drwl->scheme[ColFg]);
-	drwl_rounded_rect(drwl, rect_x, y, rect_width, drwl->font_height, 4);
+	drwl_rounded_rect(drwl, rect_x, y, rect_width, drwl->font->height, 4);
 	drwl_text(drwl, text_x, y, 0, 0, 0, info->name, 1);
 	render_icon(drwl, icon, icon_x, y);
 
@@ -423,7 +423,7 @@ static int draw_battery_info(struct Drwl *drwl, struct battery_info *info, int x
 	icon_x = rect_x + PANEL_PADDING / 2;
 
 	set_color(drwl->context, drwl->scheme[ColFg]);
-	drwl_rounded_rect(drwl, rect_x, y, rect_width, drwl->font_height, 4);
+	drwl_rounded_rect(drwl, rect_x, y, rect_width, drwl->font->height, 4);
 	render_icon(drwl, icon, icon_x, y);
 
 	return rect_x - PANEL_SPACE;
@@ -440,7 +440,7 @@ static int draw_panel_text(struct Drwl *drwl, char *text, int x, int y) {
 
 	set_color(drwl->context, drwl->scheme[ColFg]);
 	// add padding to take into account the offset text (which is half of padding)
-	drwl_rounded_rect(drwl, rect_x, y, rect_width, drwl->font_height, 4);
+	drwl_rounded_rect(drwl, rect_x, y, rect_width, drwl->font->height, 4);
 
 	// don't draw text background, thus don't provide width & height
 	// this is leftover logic from sewn's drwl statusbar
@@ -492,6 +492,7 @@ static void load_icon(const char *file, struct icon *icon) {
 
 struct Drwl *drwl_create(const char *font) {
 	struct Drwl *drwl;
+	struct font_conf *font_conf;
 	// this variable is for getting the font height
 	// this is for calculating parts of the bar prior
 	// to any rendering
@@ -505,15 +506,22 @@ struct Drwl *drwl_create(const char *font) {
 		return NULL;
 	}
 
+	font_conf = calloc(1, sizeof(struct font_conf));
+	if (!font_conf) {
+		fprintf(stderr, "Failed to allocate memory for font_conf\n");
+		free(drwl);
+		return NULL;
+	}
+
 	// Create a pango context from default cairo font map
 	font_map = pango_cairo_font_map_get_default();
-	drwl->pango_context = pango_font_map_create_context(font_map);
+	font_conf->context = pango_font_map_create_context(font_map);
 
-	drwl->pango_description = pango_font_description_from_string(font);
+	font_conf->desc = pango_font_description_from_string(font);
 	// Get font metrics and use the metrics to get the font height
-	metrics = pango_context_get_metrics(drwl->pango_context, drwl->pango_description, NULL);
+	metrics = pango_context_get_metrics(font_conf->context, font_conf->desc, NULL);
 	font_height = (float)pango_font_metrics_get_height(metrics) / (float)PANGO_SCALE;
-	drwl->font_height = (unsigned int)font_height;
+	font_conf->height = (unsigned int)font_height;
 
 	// load all the icons necessary for wireless networks
 	load_icon(ADWAITA_THEME_DIR "/status/network-wireless-disabled-symbolic.svg", &drwl->wireless.disconnected);
@@ -548,6 +556,8 @@ struct Drwl *drwl_create(const char *font) {
 
 	pango_font_metrics_unref(metrics);
 
+	drwl->font = font_conf;
+
 	return drwl;
 }
 
@@ -555,8 +565,9 @@ void drwl_prepare_drawing(struct Drwl *drwl, int w, int h, int stride, unsigned 
 	// create all the necessary information to write to the wayland buffer
 	drwl->surface = cairo_image_surface_create_for_data(data, CAIRO_FORMAT_ARGB32, w, h, stride);
 	drwl->context = cairo_create(drwl->surface);
-	drwl->pango_layout = pango_layout_new(drwl->pango_context);
-	pango_layout_set_font_description(drwl->pango_layout, drwl->pango_description);
+
+	drwl->font->layout = pango_layout_new(drwl->font->context);
+	pango_layout_set_font_description(drwl->font->layout, drwl->font->desc);
 }
 
 void drwl_rect(struct Drwl *drwl,
@@ -632,7 +643,7 @@ int drwl_text(struct Drwl *drwl,
 		w -= lpad;
 	}
 
-	pango_layout_set_text(drwl->pango_layout, text, -1);
+	pango_layout_set_text(drwl->font->layout, text, -1);
 
 	// set current color, in this case for the font
 	// this is to emulate the pixman_image_composite32 operations
@@ -642,20 +653,20 @@ int drwl_text(struct Drwl *drwl,
 
 	// render the text
 	cairo_move_to(drwl->context, x, y);
-	pango_cairo_show_layout(drwl->context, drwl->pango_layout);
+	pango_cairo_show_layout(drwl->context, drwl->font->layout);
 
 	return x + (render ? w : 0);
 }
 
 unsigned int drwl_font_getwidth(struct Drwl *drwl, const char *text) {
 	PangoRectangle extent;
-	pango_layout_set_text(drwl->pango_layout, text, -1);
-	pango_layout_get_extents(drwl->pango_layout, NULL, &extent);
+	pango_layout_set_text(drwl->font->layout, text, -1);
+	pango_layout_get_extents(drwl->font->layout, NULL, &extent);
 	return (unsigned int)extent.width / PANGO_SCALE;
 }
 
 void drwl_finish_drawing(struct Drwl *drwl) {
-	g_object_unref(drwl->pango_layout);
+	g_object_unref(drwl->font->layout);
 	cairo_destroy(drwl->context);
 	cairo_surface_destroy(drwl->surface);
 }
@@ -667,9 +678,9 @@ void destroy_icon(struct icon *icon) {
 }
 
 void drwl_destroy(struct Drwl *drwl) {
-	pango_font_description_free(drwl->pango_description);
+	pango_font_description_free(drwl->font->desc);
 
-	g_object_unref(drwl->pango_context);
+	g_object_unref(drwl->font->context);
 
 	// TODO
 	// yknow I could probably do this more graciously
@@ -705,5 +716,6 @@ void drwl_destroy(struct Drwl *drwl) {
 	destroy_icon(&drwl->battery.discharging._90);
 	destroy_icon(&drwl->battery.discharging._100);
 
+	free(drwl->font);
 	free(drwl);
 }

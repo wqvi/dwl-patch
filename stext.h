@@ -159,23 +159,31 @@ struct system_info {
 	struct time_info date;
 };
 
+struct font_conf {
+	PangoContext *context;
+	PangoFontDescription *desc;
+	unsigned int height;
+	PangoLayout *layout;
+};
+
+struct statusbar {
+	// used for updating system info struct every 45 seconds
+	struct wl_event_source *timed_event_source;
+
+	struct system_info system_info;
+
+	// all statusbar panels get written to here.
+	cairo_surface_t *surface;
+	cairo_t *context;
+};
+
 // TODO rename Drwl to something like statusbar?
 // Plus make it not a typedef. That is confusing.
 struct Drwl {
 	struct wireless_icons wireless;
 	struct battery_icons battery;
 
-	// font context. used for getting font height
-	// prior to any surface creation
-	PangoContext *pango_context;
-
-	// Font description, so the name of the font
-	// and the size of the font
-	PangoFontDescription *pango_description;
-
-	// Display metrics for the font, so size in pixels
-	// used to populate the font_height variable
-	unsigned int font_height;
+	struct font_conf *font;
 
 	cairo_surface_t *surface;
 	cairo_t *context;

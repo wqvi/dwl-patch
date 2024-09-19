@@ -441,13 +441,7 @@ static struct wlr_box sgeom;
 static struct wl_list mons;
 static Monitor *selmon;
 
-static struct statusbar{
-	// timed event source
-	// this is for updating the status information
-	struct wl_event_source *timed_event_source;
-
-	struct system_info system_info;
-} statusbar;
+static struct statusbar statusbar;
 
 static const struct wlr_buffer_impl buffer_impl = {
     .destroy = buffer_destroy,
@@ -1435,8 +1429,8 @@ drawbar(Monitor *m)
 {
 	static uint32_t *color = colors[SchemeNorm];
 	int x, w, tw = 0;
-	int boxs = m->drw->font_height / 9;
-	int boxw = m->drw->font_height / 6 + 2;
+	int boxs = m->drw->font->height / 9;
+	int boxw = m->drw->font->height / 6 + 2;
 	uint32_t i, occ = 0, urg = 0;
 	int32_t stride, size;
 	Client *c;
@@ -3101,8 +3095,8 @@ updatebar(Monitor *m)
 		return;
 
 	m->b.scale = m->wlr_output->scale;
-	m->lrpad = m->drw->font_height;
-	m->b.height = m->drw->font_height + 2;
+	m->lrpad = m->drw->font->height;
+	m->b.height = m->drw->font->height + 2;
 	m->b.real_height = (int)((float)m->b.height / m->wlr_output->scale);
 }
 
