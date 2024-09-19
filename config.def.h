@@ -13,7 +13,7 @@ static const int topbar = 1;
 static const float bordercolor[]           = COLOR(0x444444ff);
 static const float focuscolor[]            = COLOR(0x005577ff);
 static const float urgentcolor[]           = COLOR(0xff0000ff);
-static const char *font = "Liberation Mono 12";
+static const char *font = "Terminus 12";
 static const float rootcolor[] 		   = COLOR(0x181716ff);
 /* To conform the xdg-protocol, set the alpha to zero to restore the old behavior */
 static const float fullscreen_bg[]         = {0.1f, 0.1f, 0.1f, 1.0f}; /* You can also use glsl colors */
