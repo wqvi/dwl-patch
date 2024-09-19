@@ -158,7 +158,7 @@ static const Key keys[] = {
 	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_less,       tagmon,         {.i = WLR_DIRECTION_LEFT} },
 	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_greater,    tagmon,         {.i = WLR_DIRECTION_RIGHT} },
 	{ 0, XKB_KEY_Print, spawn, SHCMD("grim -c - | wl-copy -t image/png") },
-	{ WLR_MODIFIER_CTRL, XKB_KEY_Print, spawn, SHCMD("grim -g \"$(slurp -d)\" -c - | wl-copy -t image/png") },
+	{ WLR_MODIFIER_SHIFT, XKB_KEY_Print, spawn, SHCMD("slurp -d | grim -t png -c -g - - | wl-copy -t image/png") },
 	TAGKEYS(          XKB_KEY_1, XKB_KEY_exclam,                         0),
 	TAGKEYS(          XKB_KEY_2, XKB_KEY_at,                         1),
 	TAGKEYS(          XKB_KEY_3, XKB_KEY_numbersign,                 2),
