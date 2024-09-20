@@ -203,7 +203,7 @@ void drwl_rect(struct Drwl *drwl,
 		int x, int y, unsigned int w, unsigned int h,
 		int filled, int invert);
 
-void drwl_rounded_rect(struct Drwl *drwl,
+void drwl_rounded_rect(cairo_t *cr,
 		double x, double y, unsigned int w, unsigned int h,
 		double radius);
 
