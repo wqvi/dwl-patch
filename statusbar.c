@@ -650,9 +650,9 @@ int drwl_text(struct Drwl *drwl,
 		w = invert ? invert : ~invert;
 	} else {
 		clr = drwl->scheme[invert ? ColBg : ColFg];
-		set_color(drwl->context, clr);
 
-		drwl_rect(drwl->context, drwl->scheme, x, y, w, h, 1, !invert);
+		set_color(drwl->context, drwl->scheme[!invert ? ColBg : ColFg]);
+		filled_rect(drwl->context, x, y, w, h);
 
 		x += lpad;
 		w -= lpad;
