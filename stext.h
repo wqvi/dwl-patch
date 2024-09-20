@@ -193,6 +193,8 @@ struct Drwl {
 
 void formatstatusbar(struct system_info *info);
 
+void set_color(cairo_t *cr, uint32_t hex);
+
 int draw_system_info(struct Drwl *drwl, struct system_info *info, int x, int y);
 
 struct Drwl *drwl_create(const char *font);

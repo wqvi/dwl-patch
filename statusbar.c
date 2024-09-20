@@ -281,7 +281,7 @@ void formatstatusbar(struct system_info *info) {
 	formatdate(&info->date);
 }
 
-static void set_color(cairo_t *cr, uint32_t hex) {
+void set_color(cairo_t *cr, uint32_t hex) {
 	double r = ((hex >> 24) & 0xFF) / 255.0;
 	double g = ((hex >> 16) & 0xFF) / 255.0;
 	double b = ((hex >> 8) & 0xFF) / 255.0;
