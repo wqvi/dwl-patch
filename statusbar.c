@@ -325,7 +325,7 @@ static int draw_network_info(struct Drwl *drwl, struct network_info *info, int x
 	icon_x = x - ((int)icon->viewport.width + PANEL_PADDING);
 
 	set_color(drwl->context, drwl->scheme[ColFg]);
-	drwl_rounded_rect(drwl->context, rect_x, y, rect_width, drwl->font->height, 4);
+	filled_rounded_rect(drwl->context, rect_x, y, rect_width, drwl->font->height, 4);
 	drwl_text(drwl, text_x, y, 0, 0, 0, info->name, 1);
 	render_icon(drwl, icon, icon_x, y);
 
@@ -423,7 +423,7 @@ static int draw_battery_info(struct Drwl *drwl, struct battery_info *info, int x
 	icon_x = rect_x + PANEL_PADDING / 2;
 
 	set_color(drwl->context, drwl->scheme[ColFg]);
-	drwl_rounded_rect(drwl->context, rect_x, y, rect_width, drwl->font->height, 4);
+	filled_rounded_rect(drwl->context, rect_x, y, rect_width, drwl->font->height, 4);
 	render_icon(drwl, icon, icon_x, y);
 
 	return rect_x - PANEL_SPACE;
@@ -440,7 +440,7 @@ static int draw_panel_text(struct Drwl *drwl, char *text, int x, int y) {
 
 	set_color(drwl->context, drwl->scheme[ColFg]);
 	// add padding to take into account the offset text (which is half of padding)
-	drwl_rounded_rect(drwl->context, rect_x, y, rect_width, drwl->font->height, 4);
+	filled_rounded_rect(drwl->context, rect_x, y, rect_width, drwl->font->height, 4);
 
 	// don't draw text background, thus don't provide width & height
 	// this is leftover logic from sewn's drwl statusbar
@@ -587,8 +587,7 @@ void filled_rect(cairo_t *cr, int x, int y, int w, int h) {
 	cairo_fill(cr);
 }
 
-void drwl_rounded_rect(cairo_t *cr,
-		double x, double y, unsigned int w, unsigned int h,
+void filled_rounded_rect(cairo_t *cr, int x, int y, int w, int h,
 		double radius) {
 	cairo_new_sub_path(cr);
 	cairo_arc(cr, x + w - radius, y + radius, radius, DEG_TO_RAD(-90), 0);
