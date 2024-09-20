@@ -612,6 +612,13 @@ void render_icon(struct Drwl *drwl, struct icon *icon, double x, double y) {
 	cairo_paint(drwl->context);
 }
 
+void render_text(cairo_t *cr, struct font_conf *font, int x, int y, const char *text) {
+	pango_layout_set_text(font->layout, text, -1);
+
+	cairo_move_to(cr, x, y);
+	pango_cairo_show_layout(cr, font->layout);
+}
+
 int drwl_text(struct Drwl *drwl,
 		int x, int y, int w, int h,
 		unsigned int lpad, const char *text, int invert) {
