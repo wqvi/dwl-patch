@@ -211,10 +211,6 @@ void render_icon(struct Drwl *drwl, struct icon *icon, double x, double y);
 
 void render_text(cairo_t *cr, struct font_conf *font, int x, int y, const char *text);
 
-int drwl_text(struct Drwl *drwl,
-		int x, int y, int w, int h,
-		unsigned int lpad, const char *text, int invert);
-
 unsigned int drwl_font_getwidth(struct Drwl *drwl, const char *text);
 
 void drwl_finish_drawing(struct Drwl *drwl);

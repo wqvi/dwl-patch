@@ -1494,7 +1494,10 @@ drawbar(Monitor *m)
 		if (c) {
 			m->drw->scheme = colors[m == selmon ? SchemeSel : SchemeNorm];
 			color = colors[m == selmon ? SchemeSel : SchemeNorm];
-			drwl_text(m->drw, x, 0, w, m->b.height, m->lrpad / 2, client_get_title(c), 0);
+			set_color(m->drw->context, m->drw->scheme[ColBg]);
+			filled_rect(m->drw->context, x, 0, w, m->b.height);
+			set_color(m->drw->context, m->drw->scheme[ColFg]);
+			render_text(m->drw->context, m->drw->font, x + m->lrpad / 2, 0, client_get_title(c));
 		} else {
 			m->drw->scheme = colors[SchemeNorm];
 			color = colors[SchemeNorm];

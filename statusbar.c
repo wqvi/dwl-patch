@@ -621,39 +621,6 @@ void render_text(cairo_t *cr, struct font_conf *font, int x, int y, const char *
 	pango_cairo_show_layout(cr, font->layout);
 }
 
-int drwl_text(struct Drwl *drwl,
-		int x, int y, int w, int h,
-		unsigned int lpad, const char *text, int invert) {
-	int render = x || y || w || h;
-	uint32_t clr = drwl->scheme[ColFg];
-
-	if (!render) {
-		w = invert ? invert : ~invert;
-	} else {
-		clr = drwl->scheme[invert ? ColBg : ColFg];
-
-		set_color(drwl->context, drwl->scheme[!invert ? ColBg : ColFg]);
-		filled_rect(drwl->context, x, y, w, h);
-
-		x += lpad;
-		w -= lpad;
-	}
-
-	pango_layout_set_text(drwl->font->layout, text, -1);
-
-	// set current color, in this case for the font
-	// this is to emulate the pixman_image_composite32 operations
-	// as that's how the previous implementation colored
-	// the text
-	set_color(drwl->context, clr);
-
-	// render the text
-	cairo_move_to(drwl->context, x, y);
-	pango_cairo_show_layout(drwl->context, drwl->font->layout);
-
-	return x + (render ? w : 0);
-}
-
 unsigned int drwl_font_getwidth(struct Drwl *drwl, const char *text) {
 	PangoRectangle extent;
 	pango_layout_set_text(drwl->font->layout, text, -1);
