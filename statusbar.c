@@ -597,6 +597,23 @@ void drwl_rect(cairo_t *cr, uint32_t *scheme,
 	}
 }
 
+void delineate_rect(cairo_t *cr, int x, int y, int w, int h) {
+	cairo_antialias_t aa = cairo_get_antialias(cr);
+	cairo_set_antialias(cr, CAIRO_ANTIALIAS_NONE);
+
+	cairo_set_line_width(cr, 1.0);
+
+	cairo_rectangle(cr, x + 1, y + 1, w - 1, h - 1);
+	cairo_stroke(cr);
+
+	cairo_set_antialias(cr, aa);
+}
+
+void filled_rect(cairo_t *cr, int x, int y, int w, int h) {
+	cairo_rectangle(cr, x, y, w, h);
+	cairo_fill(cr);
+}
+
 void drwl_rounded_rect(cairo_t *cr,
 		double x, double y, unsigned int w, unsigned int h,
 		double radius) {

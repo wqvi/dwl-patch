@@ -203,6 +203,10 @@ void drwl_rect(cairo_t *cr, uint32_t *scheme,
 		int x, int y, unsigned int w, unsigned int h,
 		int filled, int invert);
 
+void delineate_rect(cairo_t *cr, int x, int y, int w, int h);
+
+void filled_rect(cairo_t *cr, int x, int y, int w, int h);
+
 void drwl_rounded_rect(cairo_t *cr,
 		double x, double y, unsigned int w, unsigned int h,
 		double radius);
