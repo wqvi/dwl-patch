@@ -1474,9 +1474,13 @@ drawbar(Monitor *m)
 		m->drw->scheme = colors[m->tagset[m->seltags] & 1 << i ? SchemeSel : SchemeNorm];
 		drwl_text(m->drw, x, 0, w, m->b.height, m->lrpad / 2, tags[i], urg & 1 << i);
 		if (occ & 1 << i) {
-			drwl_rect(m->drw->context, m->drw->scheme, x + boxs, boxs, boxw, boxw,
-				m == selmon && c && c->tags & 1 << i,
-				urg & 1 << i);
+			int clr_flag = urg & 1 << i ? ColBg : ColFg;
+			set_color(m->drw->context, m->drw->scheme[clr_flag]);
+			if (m == selmon && c && c->tags & 1 << i) {
+				filled_rect(m->drw->context, x + boxs, boxs, boxw, boxw);
+			} else {
+				delineate_rect(m->drw->context, x + boxs, boxs, boxw, boxw);
+			}
 		}
 		x += w;
 	}
