@@ -570,30 +570,30 @@ void drwl_prepare_drawing(struct Drwl *drwl, int w, int h, int stride, unsigned 
 	pango_layout_set_font_description(drwl->font->layout, drwl->font->desc);
 }
 
-void drwl_rect(struct Drwl *drwl,
+void drwl_rect(cairo_t *cr, uint32_t *scheme,
 		int x, int y, unsigned int w, unsigned int h,
 		int filled, int invert) {
-	uint32_t clr = drwl->scheme[invert ? ColBg : ColFg];
-	set_color(drwl->context, clr);
+	uint32_t clr = scheme[invert ? ColBg : ColFg];
+	set_color(cr, clr);
 	if (filled) {
-		cairo_rectangle(drwl->context, x, y, w, h);
-		cairo_fill(drwl->context);
+		cairo_rectangle(cr, x, y, w, h);
+		cairo_fill(cr);
 	} else {
 		// grab anti alias settings
-		cairo_antialias_t antialias = cairo_get_antialias(drwl->context);
+		cairo_antialias_t antialias = cairo_get_antialias(cr);
 		// when anti aliasing is on
 		// cairo will produce a blurry outline of a rectangle
-		cairo_set_antialias(drwl->context, CAIRO_ANTIALIAS_NONE);
+		cairo_set_antialias(cr, CAIRO_ANTIALIAS_NONE);
 
-		cairo_set_line_width(drwl->context, 1.0);
+		cairo_set_line_width(cr, 1.0);
 		// offset the rectangle outline to be within the outline.
 		// meaning it doesn't render the outline it renders the actual
 		// edges of the rectangle
-		cairo_rectangle(drwl->context, x + 1, y + 1, w - 1, h - 1);
-		cairo_stroke(drwl->context);
+		cairo_rectangle(cr, x + 1, y + 1, w - 1, h - 1);
+		cairo_stroke(cr);
 
 		// set anti alias settings to what it was prior to drawing outline
-		cairo_set_antialias(drwl->context, antialias);
+		cairo_set_antialias(cr, antialias);
 	}
 }
 
@@ -635,7 +635,7 @@ int drwl_text(struct Drwl *drwl,
 		clr = drwl->scheme[invert ? ColBg : ColFg];
 		set_color(drwl->context, clr);
 
-		drwl_rect(drwl, x, y, w, h, 1, !invert);
+		drwl_rect(drwl->context, drwl->scheme, x, y, w, h, 1, !invert);
 
 		x += lpad;
 		w -= lpad;
