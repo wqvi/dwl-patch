@@ -201,10 +201,6 @@ struct Drwl *drwl_create(const char *font);
 
 void drwl_prepare_drawing(struct Drwl *drwl, int w, int h, int stride, unsigned char *data);
 
-void drwl_rect(cairo_t *cr, uint32_t *scheme,
-		int x, int y, unsigned int w, unsigned int h,
-		int filled, int invert);
-
 void delineate_rect(cairo_t *cr, int x, int y, int w, int h);
 
 void filled_rect(cairo_t *cr, int x, int y, int w, int h);
