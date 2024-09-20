@@ -326,7 +326,8 @@ static int draw_network_info(struct Drwl *drwl, struct network_info *info, int x
 
 	set_color(drwl->context, drwl->scheme[ColFg]);
 	filled_rounded_rect(drwl->context, rect_x, y, rect_width, drwl->font->height, 4);
-	drwl_text(drwl, text_x, y, 0, 0, 0, info->name, 1);
+	set_color(drwl->context, drwl->scheme[ColBg]);
+	render_text(drwl->context, drwl->font, text_x, y, info->name);
 	render_icon(drwl, icon, icon_x, y);
 
 	return rect_x - PANEL_SPACE;
@@ -444,7 +445,8 @@ static int draw_panel_text(struct Drwl *drwl, char *text, int x, int y) {
 
 	// don't draw text background, thus don't provide width & height
 	// this is leftover logic from sewn's drwl statusbar
-	drwl_text(drwl, text_x, y, 0, 0, 0, text, 1);
+	set_color(drwl->context, drwl->scheme[ColBg]);
+	render_text(drwl->context, drwl->font, text_x, y, text);
 
 	// move left to next panel x position
 	return rect_x - PANEL_SPACE;

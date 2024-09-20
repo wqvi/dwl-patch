@@ -1451,8 +1451,6 @@ drawbar(Monitor *m)
 	/* draw status first so it can be overdrawn by tags later */
 	if (m == selmon) { /* status is only drawn on selected monitor */
 		m->drw->scheme = color;
-		//tw = TEXTW(m, stext) - m->lrpad + 2; /* 2px right padding */
-		//drwl_text(m->drw, m->b.width - tw, 0, tw, m->b.height, 0, stext, 0);
 		// this renders left to right
 		// yes this is kinda backwards but it makes sense to me
 		tw = draw_system_info(m->drw, &statusbar.system_info, m->b.width, 0);
@@ -1470,9 +1468,14 @@ drawbar(Monitor *m)
 	x = 0;
 	c = focustop(m);
 	for (i = 0; i < LENGTH(tags); i++) {
+		int flag = urg & 1 << 1;
 		w = TEXTW(m, tags[i]);
 		m->drw->scheme = colors[m->tagset[m->seltags] & 1 << i ? SchemeSel : SchemeNorm];
-		drwl_text(m->drw, x, 0, w, m->b.height, m->lrpad / 2, tags[i], urg & 1 << i);
+		set_color(m->drw->context, m->drw->scheme[!flag ? ColBg : ColFg]);
+		filled_rect(m->drw->context, x, 0, w, m->b.height);
+		set_color(m->drw->context, m->drw->scheme[flag ? ColBg : ColFg]);
+		render_text(m->drw->context, m->drw->font, x + m->lrpad / 2, 0, tags[i]);
+
 		if (occ & 1 << i) {
 			int clr_flag = urg & 1 << i ? ColBg : ColFg;
 			set_color(m->drw->context, m->drw->scheme[clr_flag]);
