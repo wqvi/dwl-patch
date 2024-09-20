@@ -1495,7 +1495,8 @@ drawbar(Monitor *m)
 		} else {
 			m->drw->scheme = colors[SchemeNorm];
 			color = colors[SchemeNorm];
-			drwl_rect(m->drw->context, m->drw->scheme, x, 0, w, m->b.height, 0, 1);
+			set_color(m->drw->context, color[ColBg]);
+			delineate_rect(m->drw->context, x, 0, w, m->b.height);
 		}
 	}
 
