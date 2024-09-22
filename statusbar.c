@@ -328,7 +328,7 @@ static int draw_network_info(struct Drwl *drwl, struct network_info *info, int x
 	filled_rounded_rect(drwl->context, rect_x, y, rect_width, drwl->font->height, 4);
 	set_color(drwl->context, drwl->scheme[ColBg]);
 	render_text(drwl->context, drwl->font, text_x, y, info->name);
-	render_icon(drwl, icon, icon_x, y);
+	render_icon(drwl->context, icon, icon_x, y);
 
 	return rect_x - PANEL_SPACE;
 }
@@ -409,8 +409,8 @@ static struct icon *get_battery_icon(struct battery_icons *icons, struct battery
 	}
 }
 
-static int draw_battery_info(struct Drwl *drwl, struct battery_info *info, int x, int y) {
-	struct icon *icon = get_battery_icon(&drwl->battery, info);
+static int draw_battery_info(cairo_t *cr, uint32_t *scheme, struct battery_icons *icons, struct font_conf *font, struct battery_info *info, int x, int y) {
+	struct icon *icon = get_battery_icon(icons, info);
 	int rect_width;
 	int rect_x;
 	int icon_x;
@@ -423,9 +423,9 @@ static int draw_battery_info(struct Drwl *drwl, struct battery_info *info, int x
 	rect_x = x - rect_width;
 	icon_x = rect_x + PANEL_PADDING / 2;
 
-	set_color(drwl->context, drwl->scheme[ColFg]);
-	filled_rounded_rect(drwl->context, rect_x, y, rect_width, drwl->font->height, 4);
-	render_icon(drwl, icon, icon_x, y);
+	set_color(cr, scheme[ColFg]);
+	filled_rounded_rect(cr, rect_x, y, rect_width, font->height, 4);
+	render_icon(cr, icon, icon_x, y);
 
 	return rect_x - PANEL_SPACE;
 }
@@ -458,7 +458,7 @@ int draw_system_info(struct Drwl *drwl, struct system_info *info, int x, int y) 
 	// starts from left to right
 	panel_x = draw_panel_text(drwl->context, drwl->scheme, drwl->font, info->date.date, panel_x, y);
 
-	panel_x = draw_battery_info(drwl, &info->charge, panel_x, y);
+	panel_x = draw_battery_info(drwl->context, drwl->scheme, &drwl->battery, drwl->font, &info->charge, panel_x, y);
 
 	panel_x = draw_panel_text(drwl->context, drwl->scheme, drwl->font, info->temp.celsius, panel_x, y);
 
@@ -601,7 +601,7 @@ void filled_rounded_rect(cairo_t *cr, int x, int y, int w, int h,
 	cairo_fill(cr);
 }
 
-void render_icon(struct Drwl *drwl, struct icon *icon, double x, double y) {
+void render_icon(cairo_t *cr, struct icon *icon, double x, double y) {
 	GError *error = NULL;
 
 	if (!rsvg_handle_render_document(icon->handle, icon->context, &icon->viewport, &error)) {
@@ -610,8 +610,8 @@ void render_icon(struct Drwl *drwl, struct icon *icon, double x, double y) {
 	}
 
 	// render surface to target context
-	cairo_set_source_surface(drwl->context, icon->surface, x, 0);
-	cairo_paint(drwl->context);
+	cairo_set_source_surface(cr, icon->surface, x, 0);
+	cairo_paint(cr);
 }
 
 void render_text(cairo_t *cr, struct font_conf *font, int x, int y, const char *text) {

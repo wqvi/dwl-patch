@@ -207,7 +207,7 @@ void filled_rect(cairo_t *cr, int x, int y, int w, int h);
 
 void filled_rounded_rect(cairo_t *cr, int x, int y, int w, int h, double radius);
 
-void render_icon(struct Drwl *drwl, struct icon *icon, double x, double y);
+void render_icon(cairo_t *cr, struct icon *icon, double x, double y);
 
 void render_text(cairo_t *cr, struct font_conf *font, int x, int y, const char *text);
 
