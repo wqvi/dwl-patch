@@ -430,8 +430,8 @@ static int draw_battery_info(struct Drwl *drwl, struct battery_info *info, int x
 	return rect_x - PANEL_SPACE;
 }
 
-static int draw_panel_text(struct Drwl *drwl, char *text, int x, int y) {
-	int rect_width = text_width(drwl->font, text) + PANEL_PADDING;
+static int draw_panel_text(cairo_t *cr, uint32_t *scheme, struct font_conf *font, char *text, int x, int y) {
+	int rect_width = text_width(font, text) + PANEL_PADDING;
 	// rectangle origin is the top left. Therefore
 	// you must move it to the left of the width of the rectangle
 	// to not have it render off the side of the screen
@@ -439,14 +439,14 @@ static int draw_panel_text(struct Drwl *drwl, char *text, int x, int y) {
 	// inch forward by half the padding (to center it)
 	int text_x = rect_x + PANEL_PADDING / 2;
 
-	set_color(drwl->context, drwl->scheme[ColFg]);
+	set_color(cr, scheme[ColFg]);
 	// add padding to take into account the offset text (which is half of padding)
-	filled_rounded_rect(drwl->context, rect_x, y, rect_width, drwl->font->height, 4);
+	filled_rounded_rect(cr, rect_x, y, rect_width, font->height, 4);
 
 	// don't draw text background, thus don't provide width & height
 	// this is leftover logic from sewn's drwl statusbar
-	set_color(drwl->context, drwl->scheme[ColBg]);
-	render_text(drwl->context, drwl->font, text_x, y, text);
+	set_color(cr, scheme[ColBg]);
+	render_text(cr, font, text_x, y, text);
 
 	// move left to next panel x position
 	return rect_x - PANEL_SPACE;
@@ -456,13 +456,13 @@ int draw_system_info(struct Drwl *drwl, struct system_info *info, int x, int y) 
 	int panel_x = x;
 
 	// starts from left to right
-	panel_x = draw_panel_text(drwl, info->date.date, panel_x, y);
+	panel_x = draw_panel_text(drwl->context, drwl->scheme, drwl->font, info->date.date, panel_x, y);
 
 	panel_x = draw_battery_info(drwl, &info->charge, panel_x, y);
 
-	panel_x = draw_panel_text(drwl, info->temp.celsius, panel_x, y);
+	panel_x = draw_panel_text(drwl->context, drwl->scheme, drwl->font, info->temp.celsius, panel_x, y);
 
-	panel_x = draw_panel_text(drwl, info->memory.usage_ratio, panel_x, y);
+	panel_x = draw_panel_text(drwl->context, drwl->scheme, drwl->font, info->memory.usage_ratio, panel_x, y);
 
 	panel_x = draw_network_info(drwl, &info->network, panel_x, y);
 
