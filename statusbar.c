@@ -319,7 +319,7 @@ static int draw_network_info(struct Drwl *drwl, struct network_info *info, int x
 	// double the padding because we are putting text & icon
 	// into this panel. Yes we could make a constant but this magic number
 	// reappears in appropriate places that one could intuit what it means.
-	rect_width = drwl_font_getwidth(drwl, info->name) + (int)icon->viewport.width + PANEL_PADDING * 2;
+	rect_width = text_width(drwl->font, info->name) + (int)icon->viewport.width + PANEL_PADDING * 2;
 	rect_x = x - rect_width;
 	text_x = rect_x + PANEL_PADDING / 2;
 	icon_x = x - ((int)icon->viewport.width + PANEL_PADDING);
@@ -431,7 +431,7 @@ static int draw_battery_info(struct Drwl *drwl, struct battery_info *info, int x
 }
 
 static int draw_panel_text(struct Drwl *drwl, char *text, int x, int y) {
-	int rect_width = drwl_font_getwidth(drwl, text) + PANEL_PADDING;
+	int rect_width = text_width(drwl->font, text) + PANEL_PADDING;
 	// rectangle origin is the top left. Therefore
 	// you must move it to the left of the width of the rectangle
 	// to not have it render off the side of the screen
@@ -626,6 +626,13 @@ unsigned int drwl_font_getwidth(struct Drwl *drwl, const char *text) {
 	pango_layout_set_text(drwl->font->layout, text, -1);
 	pango_layout_get_extents(drwl->font->layout, NULL, &extent);
 	return (unsigned int)extent.width / PANGO_SCALE;
+}
+
+int text_width(struct font_conf *font, const char *text) {
+	PangoRectangle extent;
+	pango_layout_set_text(font->layout, text, -1);
+	pango_layout_get_extents(font->layout, NULL, &extent);
+	return extent.width / PANGO_SCALE;
 }
 
 void drwl_finish_drawing(struct Drwl *drwl) {
