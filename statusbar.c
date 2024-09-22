@@ -333,84 +333,84 @@ static int draw_network_info(struct Drwl *drwl, struct network_info *info, int x
 	return rect_x - PANEL_SPACE;
 }
 
-static struct icon *get_discharging_icon(struct Drwl *drwl, struct battery_info *info) {
+static struct icon *get_discharging_icon(struct discharging_icons *icons, struct battery_info *info) {
 	struct icon *icon = NULL;
 	if (info->capacity < 5) {
-		icon = &drwl->battery.discharging._0;
+		icon = &icons->_0;
 	} else if (info->capacity < 15) {
-		icon = &drwl->battery.discharging._10;
+		icon = &icons->_10;
 	} else if (info->capacity < 25) {
-		icon = &drwl->battery.discharging._20;
+		icon = &icons->_20;
 	} else if (info->capacity < 35) {
-		icon = &drwl->battery.discharging._30;
+		icon = &icons->_30;
 	} else if (info->capacity < 45) {
-		icon = &drwl->battery.discharging._40;
+		icon = &icons->_40;
 	} else if (info->capacity < 55) {
-		icon = &drwl->battery.discharging._50;
+		icon = &icons->_50;
 	} else if (info->capacity < 65) {
-		icon = &drwl->battery.discharging._60;
+		icon = &icons->_60;
 	} else if (info->capacity < 75) {
-		icon = &drwl->battery.discharging._70;
+		icon = &icons->_70;
 	} else if (info->capacity < 85) {
-		icon = &drwl->battery.discharging._80;
+		icon = &icons->_80;
 	} else if (info->capacity < 95) {
-		icon = &drwl->battery.discharging._90;
+		icon = &icons->_90;
 	} else {
-		icon = &drwl->battery.discharging._100;
+		icon = &icons->_100;
 	}
 
 	return icon;
 }
 
-static struct icon *get_charging_icon(struct Drwl *drwl, struct battery_info *info) {
+static struct icon *get_charging_icon(struct charging_icons *icons, struct battery_info *info) {
 	struct icon *icon = NULL;
 	if (info->capacity < 5) {
-		icon = &drwl->battery.charging._100;
+		icon = &icons->_100;
 	} else if (info->capacity < 15) {
-		icon = &drwl->battery.charging._10;
+		icon = &icons->_10;
 	} else if (info->capacity < 25) {
-		icon = &drwl->battery.charging._20;
+		icon = &icons->_20;
 	} else if (info->capacity < 35) {
-		icon = &drwl->battery.charging._30;
+		icon = &icons->_30;
 	} else if (info->capacity < 45) {
-		icon = &drwl->battery.charging._40;
+		icon = &icons->_40;
 	} else if (info->capacity < 55) {
-		icon = &drwl->battery.charging._50;
+		icon = &icons->_50;
 	} else if (info->capacity < 65) {
-		icon = &drwl->battery.charging._60;
+		icon = &icons->_60;
 	} else if (info->capacity < 75) {
-		icon = &drwl->battery.charging._70;
+		icon = &icons->_70;
 	} else if (info->capacity < 85) {
-		icon = &drwl->battery.charging._80;
+		icon = &icons->_80;
 	} else if (info->capacity < 95) {
-		icon = &drwl->battery.charging._90;
+		icon = &icons->_90;
 	} else {
-		icon = &drwl->battery.charging._100;
+		icon = &icons->_100;
 	}
 
 	return icon;
 }
 
-static struct icon *get_battery_icon(struct Drwl *drwl, struct battery_info *info) {
+static struct icon *get_battery_icon(struct battery_icons *icons, struct battery_info *info) {
 	switch (info->status) {
 		case Discharging:
-			return get_discharging_icon(drwl, info);
+			return get_discharging_icon(&icons->discharging, info);
 		case Charging:
-			return get_charging_icon(drwl, info);
+			return get_charging_icon(&icons->charging, info);
 		case Full:
 			if (info->plugged_in) {
-				return &drwl->battery.charging._100;
+				return &icons->charging._100;
 			}
-			return &drwl->battery.discharging._100;
+			return &icons->discharging._100;
 		case Inhibited:
-			return &drwl->battery.charging._100;
+			return &icons->charging._100;
 		default:
 			return NULL;
 	}
 }
 
 static int draw_battery_info(struct Drwl *drwl, struct battery_info *info, int x, int y) {
-	struct icon *icon = get_battery_icon(drwl, info);
+	struct icon *icon = get_battery_icon(&drwl->battery, info);
 	int rect_width;
 	int rect_x;
 	int icon_x;
