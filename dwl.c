@@ -1474,9 +1474,10 @@ drawbar(Monitor *m)
 	x = 0;
 	c = focustop(m);
 	for (i = 0; i < LENGTH(tags); i++) {
-		int flag = urg & 1 << 1;
+		int flag = m->tagset[m->seltags] & 1 << i;
 		w = TEXTW(m, tags[i]);
-		m->drw->scheme = colors[m->tagset[m->seltags] & 1 << i ? SchemeSel : SchemeNorm];
+		m->drw->scheme = colors[flag ? SchemeSel : SchemeNorm];
+		flag = urg & 1 << i;
 		set_color(m->drw->context, m->drw->scheme[!flag ? ColBg : ColFg]);
 		filled_rect(m->drw->context, x, 0, w, m->b.height);
 		set_color(m->drw->context, m->drw->scheme[flag ? ColBg : ColFg]);
