@@ -391,7 +391,12 @@ static int draw_panel_icon(cairo_t *cr, uint32_t *scheme, struct font_conf *font
 		return x;
 	}
 
-	rect_width = text_width(font, text) + (int)icon->viewport.width + PANEL_PADDING * 2;
+	if (text) {
+		rect_width = text_width(font, text) + (int)icon->viewport.width + PANEL_PADDING * 2;
+	} else {
+		rect_width = (int)icon->viewport.width + PANEL_PADDING * 2;
+	}
+
 	rect_x = x - rect_width;
 	text_x = rect_x + PANEL_PADDING / 2;
 	icon_x = x - ((int)icon->viewport.width + PANEL_PADDING);
@@ -400,7 +405,9 @@ static int draw_panel_icon(cairo_t *cr, uint32_t *scheme, struct font_conf *font
 	filled_rounded_rect(cr, rect_x, y, rect_width, font->height, 4);
 
 	set_color(cr, scheme[ColBg]);
-	render_text(cr, font, text_x, y, text);
+	if (text) {
+		render_text(cr, font, text_x, y, text);
+	}
 	render_icon(cr, icon, icon_x, y);
 
 	return rect_x - PANEL_SPACE;
@@ -436,7 +443,7 @@ int draw_system_info(struct Drwl *drwl, struct system_info *info, int x, int y) 
 	panel_x = draw_panel_text(drwl->context, drwl->scheme, drwl->font, info->date.date, panel_x, y);
 
 	icon = get_battery_icon(&drwl->battery, &info->charge);
-	panel_x = draw_panel_icon(drwl->context, drwl->scheme, drwl->font, icon, "BAT", panel_x, y);
+	panel_x = draw_panel_icon(drwl->context, drwl->scheme, drwl->font, icon, NULL, panel_x, y);
 
 	panel_x = draw_panel_text(drwl->context, drwl->scheme, drwl->font, info->temp.celsius, panel_x, y);
 
