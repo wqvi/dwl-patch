@@ -389,6 +389,10 @@ static int panel_icon_width(struct font_conf *font, struct icon *icon, const cha
 	return (int)icon->viewport.width + PANEL_PADDING * 2;
 }
 
+static int panel_text_width(struct font_conf *font, const char *text) {
+	return text_width(font, text) + PANEL_PADDING;
+}
+
 static int draw_panel_icon(cairo_t *cr, uint32_t *scheme, struct font_conf *font, struct icon *icon, const char *text, int x, int y) {
 	int rect_width;
 	int rect_x;
@@ -417,7 +421,7 @@ static int draw_panel_icon(cairo_t *cr, uint32_t *scheme, struct font_conf *font
 }
 
 static int draw_panel_text(cairo_t *cr, uint32_t *scheme, struct font_conf *font, char *text, int x, int y) {
-	int rect_width = text_width(font, text) + PANEL_PADDING;
+	int rect_width = panel_text_width(font, text);
 	// rectangle origin is the top left. Therefore
 	// you must move it to the left of the width of the rectangle
 	// to not have it render off the side of the screen
