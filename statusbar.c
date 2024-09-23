@@ -623,8 +623,8 @@ unsigned int drwl_font_getwidth(struct Drwl *drwl, const char *text) {
 int text_width(struct font_conf *font, const char *text) {
 	PangoRectangle extent;
 	pango_layout_set_text(font->layout, text, -1);
-	pango_layout_get_extents(font->layout, NULL, &extent);
-	return extent.width / PANGO_SCALE;
+	pango_layout_get_pixel_extents(font->layout, NULL, &extent);
+	return extent.width;
 }
 
 void drwl_finish_drawing(struct Drwl *drwl) {
