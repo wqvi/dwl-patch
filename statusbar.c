@@ -381,6 +381,14 @@ static struct icon *get_battery_icon(struct battery_icons *icons, struct battery
 	}
 }
 
+static int panel_icon_width(struct font_conf *font, struct icon *icon, const char *text) {
+	if (text) {
+		return text_width(font, text) + (int)icon->viewport.width + PANEL_PADDING * 2;
+	}
+
+	return (int)icon->viewport.width + PANEL_PADDING * 2;
+}
+
 static int draw_panel_icon(cairo_t *cr, uint32_t *scheme, struct font_conf *font, struct icon *icon, const char *text, int x, int y) {
 	int rect_width;
 	int rect_x;
@@ -391,12 +399,7 @@ static int draw_panel_icon(cairo_t *cr, uint32_t *scheme, struct font_conf *font
 		return x;
 	}
 
-	if (text) {
-		rect_width = text_width(font, text) + (int)icon->viewport.width + PANEL_PADDING * 2;
-	} else {
-		rect_width = (int)icon->viewport.width + PANEL_PADDING * 2;
-	}
-
+	rect_width = panel_icon_width(font, icon, text);
 	rect_x = x - rect_width;
 	text_x = rect_x + PANEL_PADDING / 2;
 	icon_x = x - ((int)icon->viewport.width + PANEL_PADDING);
