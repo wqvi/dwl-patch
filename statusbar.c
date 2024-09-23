@@ -25,6 +25,7 @@
 
 #define PANEL_PADDING (4)
 #define PANEL_SPACE (8)
+#define PANEL_ROUNDNESS (4)
 
 static void formatdate(struct time_info *date) {
 	time_t now = time(NULL);
@@ -409,7 +410,7 @@ static int draw_panel_icon(cairo_t *cr, uint32_t *scheme, struct font_conf *font
 	icon_x = x - ((int)icon->viewport.width + PANEL_PADDING);
 
 	set_color(cr, scheme[ColFg]);
-	filled_rounded_rect(cr, rect_x, y, rect_width, font->height, 4);
+	filled_rounded_rect(cr, rect_x, y, rect_width, font->height, PANEL_ROUNDNESS);
 
 	set_color(cr, scheme[ColBg]);
 	if (text) {
@@ -431,7 +432,7 @@ static int draw_panel_text(cairo_t *cr, uint32_t *scheme, struct font_conf *font
 
 	set_color(cr, scheme[ColFg]);
 	// add padding to take into account the offset text (which is half of padding)
-	filled_rounded_rect(cr, rect_x, y, rect_width, font->height, 4);
+	filled_rounded_rect(cr, rect_x, y, rect_width, font->height, PANEL_ROUNDNESS);
 
 	// don't draw text background, thus don't provide width & height
 	// this is leftover logic from sewn's drwl statusbar
