@@ -290,47 +290,19 @@ void set_color(cairo_t *cr, uint32_t hex) {
 	cairo_set_source_rgba(cr, r, g, b, a);
 }
 
-static struct icon *get_wireless_icon(struct Drwl *drwl, struct network_info *info) {
+static struct icon *get_wireless_icon(struct wireless_icons *wireless, struct network_info *info) {
 	struct icon *icon = NULL;
 	if (info->quality <= 25) {
-		icon = &drwl->wireless.none;
+		icon = &wireless->none;
 	} else if (info->quality <= 50) {
-		icon = &drwl->wireless.weak;
+		icon = &wireless->weak;
 	} else if (info->quality <= 75) {
-		icon = &drwl->wireless.okay;
+		icon = &wireless->okay;
 	} else {
-		icon = &drwl->wireless.good;
+		icon = &wireless->good;
 	}
 
 	return icon;
-}
-
-static int draw_network_info(struct Drwl *drwl, struct network_info *info, int x, int y) {
-	struct icon *icon = get_wireless_icon(drwl, info);
-	int rect_width;
-	int rect_x;
-	int text_x;
-	int icon_x;
-
-	if (icon == NULL) {
-		return x;
-	}
-
-	// double the padding because we are putting text & icon
-	// into this panel. Yes we could make a constant but this magic number
-	// reappears in appropriate places that one could intuit what it means.
-	rect_width = text_width(drwl->font, info->name) + (int)icon->viewport.width + PANEL_PADDING * 2;
-	rect_x = x - rect_width;
-	text_x = rect_x + PANEL_PADDING / 2;
-	icon_x = x - ((int)icon->viewport.width + PANEL_PADDING);
-
-	set_color(drwl->context, drwl->scheme[ColFg]);
-	filled_rounded_rect(drwl->context, rect_x, y, rect_width, drwl->font->height, 4);
-	set_color(drwl->context, drwl->scheme[ColBg]);
-	render_text(drwl->context, drwl->font, text_x, y, info->name);
-	render_icon(drwl->context, icon, icon_x, y);
-
-	return rect_x - PANEL_SPACE;
 }
 
 static struct icon *get_discharging_icon(struct discharging_icons *icons, struct battery_info *info) {
@@ -409,22 +381,26 @@ static struct icon *get_battery_icon(struct battery_icons *icons, struct battery
 	}
 }
 
-static int draw_battery_info(cairo_t *cr, uint32_t *scheme, struct battery_icons *icons, struct font_conf *font, struct battery_info *info, int x, int y) {
-	struct icon *icon = get_battery_icon(icons, info);
+static int draw_panel_icon(cairo_t *cr, uint32_t *scheme, struct font_conf *font, struct icon *icon, const char *text, int x, int y) {
 	int rect_width;
 	int rect_x;
+	int text_x;
 	int icon_x;
 
 	if (icon == NULL) {
 		return x;
 	}
 
-	rect_width = (int)icon->viewport.width + PANEL_PADDING;
+	rect_width = text_width(font, text) + (int)icon->viewport.width + PANEL_PADDING * 2;
 	rect_x = x - rect_width;
-	icon_x = rect_x + PANEL_PADDING / 2;
+	text_x = rect_x + PANEL_PADDING / 2;
+	icon_x = x - ((int)icon->viewport.width + PANEL_PADDING);
 
 	set_color(cr, scheme[ColFg]);
 	filled_rounded_rect(cr, rect_x, y, rect_width, font->height, 4);
+
+	set_color(cr, scheme[ColBg]);
+	render_text(cr, font, text_x, y, text);
 	render_icon(cr, icon, icon_x, y);
 
 	return rect_x - PANEL_SPACE;
@@ -454,17 +430,23 @@ static int draw_panel_text(cairo_t *cr, uint32_t *scheme, struct font_conf *font
 
 int draw_system_info(struct Drwl *drwl, struct system_info *info, int x, int y) {
 	int panel_x = x;
+	struct icon *icon;
 
 	// starts from left to right
 	panel_x = draw_panel_text(drwl->context, drwl->scheme, drwl->font, info->date.date, panel_x, y);
 
-	panel_x = draw_battery_info(drwl->context, drwl->scheme, &drwl->battery, drwl->font, &info->charge, panel_x, y);
+	icon = get_battery_icon(&drwl->battery, &info->charge);
+	panel_x = draw_panel_icon(drwl->context, drwl->scheme, drwl->font, icon, "BAT", panel_x, y);
 
 	panel_x = draw_panel_text(drwl->context, drwl->scheme, drwl->font, info->temp.celsius, panel_x, y);
 
 	panel_x = draw_panel_text(drwl->context, drwl->scheme, drwl->font, info->memory.usage_ratio, panel_x, y);
 
-	panel_x = draw_network_info(drwl, &info->network, panel_x, y);
+	// this is incorrect. it should be get_network_icon
+	// and inside get_network_icon there should be a check if
+	// it's a wireless or wired connection
+	icon = get_wireless_icon(&drwl->wireless, &info->network);
+	panel_x = draw_panel_icon(drwl->context, drwl->scheme, drwl->font, icon, info->network.name, panel_x, y);
 
 	// undo the last panel's spacing
 	return panel_x + PANEL_SPACE;
