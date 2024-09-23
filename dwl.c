@@ -1448,6 +1448,21 @@ drawbar(Monitor *m)
 
 	drwl_prepare_drawing(m->drw, m->b.width, m->b.height, stride, (unsigned char *)buf->data);
 
+	c = focustop(m);
+	m->drw->scheme = colors[m == selmon ? SchemeSel : SchemeNorm];
+	set_color(m->drw->context, m->drw->scheme[ColBg]);
+	if (c) {
+		filled_rect(m->drw->context, 0, 0, m->b.width, m->b.height);
+	}
+
+	if (m == selmon) { /* status is only drawn on selected monitor */
+		m->drw->scheme = color;
+		// this renders left to right
+		// yes this is kinda backwards but it makes sense to me
+		tw = draw_system_info(m->drw, &statusbar.system_info, m->b.width, 0);
+		tw = m->b.width - tw;
+	}
+
 	wl_list_for_each(c, &clients, link) {
 		if (c->mon != m)
 			continue;
@@ -1479,14 +1494,12 @@ drawbar(Monitor *m)
 		x += w;
 	}
 
-	w = m->b.width - tw - x;
+	w = m->b.width - x;
 
 	if (w > m->b.height) {
 		if (c) {
 			m->drw->scheme = colors[m == selmon ? SchemeSel : SchemeNorm];
 			color = colors[m == selmon ? SchemeSel : SchemeNorm];
-			set_color(m->drw->context, m->drw->scheme[ColBg]);
-			filled_rect(m->drw->context, x, 0, w, m->b.height);
 			set_color(m->drw->context, m->drw->scheme[ColFg]);
 			render_text(m->drw->context, m->drw->font, x + m->lrpad / 2, 0, client_get_title(c));
 		} else {
@@ -1495,14 +1508,6 @@ drawbar(Monitor *m)
 			set_color(m->drw->context, color[ColBg]);
 			delineate_rect(m->drw->context, x, 0, w, m->b.height);
 		}
-	}
-
-	if (m == selmon) { /* status is only drawn on selected monitor */
-		m->drw->scheme = color;
-		// this renders left to right
-		// yes this is kinda backwards but it makes sense to me
-		tw = draw_system_info(m->drw, &statusbar.system_info, m->b.width, 0);
-		tw = m->b.width - tw;
 	}
 
 	drwl_finish_drawing(m->drw);
