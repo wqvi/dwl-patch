@@ -10,9 +10,6 @@ static const unsigned int borderpx         = 2;  /* border pixel of windows */
 static const unsigned int snap = 32;
 static const int showbar = 1;
 static const int topbar = 1;
-static const float bordercolor[]           = COLOR(0x444444ff);
-static const float focuscolor[]            = COLOR(0x005577ff);
-static const float urgentcolor[]           = COLOR(0xff0000ff);
 static const char *font = "Terminus 12";
 static const float rootcolor[] 		   = COLOR(0x181716ff);
 /* To conform the xdg-protocol, set the alpha to zero to restore the old behavior */
@@ -35,8 +32,6 @@ static int log_level = WLR_ERROR;
 static const char *const autostart[] = {
 	NULL
 };
-
-static int passthrough = 0;
 
 static const Rule rules[] = {
 	/* app_id     title       tags mask     isfloating   monitor */
