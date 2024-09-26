@@ -30,6 +30,12 @@ static int log_level = WLR_ERROR;
 
 /* Autostart */
 static const char *const autostart[] = {
+	"/usr/bin/dbus-update-activation-environment",  "--all", NULL,
+	"/usr/bin/dbus-launch", "--exit-with-session", "mako", NULL,
+	"/usr/libexec/xdg-desktop-portal", "-r", NULL,
+	"/usr/bin/gentoo-pipewire-launcher", NULL,
+	"wpctl", "set-mute", "@DEFAULT_SINK@", "0", NULL,
+	"wpctl", "set-volume", "@DEFAULT_SINK@", "0.1", NULL,
 	NULL
 };
 
