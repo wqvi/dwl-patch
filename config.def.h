@@ -34,8 +34,9 @@ static const char *const autostart[] = {
 	"/usr/bin/dbus-launch", "--exit-with-session", "mako", NULL,
 	"/usr/libexec/xdg-desktop-portal", "-r", NULL,
 	"/usr/bin/gentoo-pipewire-launcher", NULL,
-	"wpctl", "set-mute", "@DEFAULT_SINK@", "0", NULL,
-	"wpctl", "set-volume", "@DEFAULT_SINK@", "0.1", NULL,
+	"/usr/bin/wpctl", "set-mute", "@DEFAULT_SINK@", "0", NULL,
+	"/usr/bin/wpctl", "set-volume", "@DEFAULT_SINK@", "0.1", NULL,
+	"/usr/bin/foot", "--server", NULL,
 	NULL
 };
 
@@ -123,7 +124,7 @@ static const enum libinput_config_tap_button_map button_map = LIBINPUT_CONFIG_TA
 #define SHCMD(cmd) { .v = (const char*[]){ "/bin/sh", "-c", cmd, NULL } }
 
 /* commands */
-static const char *termcmd[] = { "foot", NULL };
+static const char *termcmd[] = { "footclient", NULL };
 static const char *menucmd[] = { "j4-dmenu-desktop",
 					"--no-generic",
 					"--term=foot",
